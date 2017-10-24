@@ -3,11 +3,59 @@ typedef int Link;
 typedef int Direction;
 typedef boolean RunMode;
 typedef boolean Visit;
+typedef int Checkpoint;
+typedef int Orientation;
 
+const Orientation NOCHANGE = 0, EAST = 1, WEST = -1, NORTH = 1, SOUTH = -1; 
+const Checkpoint STARTZONE = 0, CHECKPOINT1 = 1, CHECKPOINT2 = 2, CHECKPOINT3 = 3;
 const RunMode DRY = 0, WET = 1;
 const Direction LEFT=0, RIGHT=1, UP=2, DOWN =3, NOPATH = -1;
-const VertexType VERTEX = 0, NODE = 1, BLOCKBASE = 2, REDPIT = 3, BLUEPIT = 4, PIT3 = 5, PHOTOPOINT = 6;
+const VertexType PATH = 0 ,VERTEX = 1, NODE = 2, BLOCKBASE = 3, REDPIT = 4, BLUEPIT = 5, PIT3 = 6, PHOTOPOINT = 7;
 const Visit VISITED=1,UNVISITED=0;
+
+class Math{
+  public:
+  static int sgn(int v) {
+  return (v > 0) - (v < 0);
+}
+};
+
+class Bot{
+
+  
+  public:
+  
+  void moveForward(){
+  
+  };
+
+  void moveBackward(){
+    
+  };
+
+  void moveLeft(){
+    
+  };
+   void moveRight(){
+    
+  };
+
+  VertexType nodeDetect(){    
+    if (digitalRead(A0==HIGH)){
+      return VERTEX;
+    }else{
+      return PATH;
+    }
+  };
+
+  void ReadyForWet(){
+    
+  };
+  
+  int ReadSensor(){
+    
+  };
+};
 
 
 class Vertex{
@@ -23,12 +71,26 @@ public:
   static int getIndex(int m,int n){
     return m+10*n;
   }
+
+  static Orientation dx(int index1,int index2){
+    return Math::sgn((index1%10)-(index2%10));
+  }
+  static Orientation dy(int index1,int index2){    
+    return  Math::sgn((index1/10)-(index2/10));
+  }
+  
 };
 
-class IRC_GamePlay{  
+class Game{  
 public:
   RunMode mode;
   Vertex vertex[50];
+  Checkpoint lastCheckpoint;
+  int segmentStart;
+  int completedSegments;
+  int xOrient, yOrient;
+  Vertex lastVertex;
+  static const int dryPath[18];             //={0,3,13,10,20,23,33,30,40,49,9,8,28,27,7,6,36,37};
   void initializeVertex(){
     //vertex[0] = new Vertex
        int t;
@@ -126,13 +188,23 @@ public:
         
 
   }; //end of initialize
-} game; // end of IRC_GamePlay class;
+} game; // end of Game class;
 
-IRC_GamePlay LoadFromEEPROM(){
-  IRC_GamePlay tempGame;
+const int Game::dryPath[18]= {0,3,13,10,20,23,33,30,40,49,9,8,28,27,7,6,36,37};
+
+
+Game LoadFromEEPROM(){
+  Game tempGame;
   //ReadEEPROM;
   //if (first byte on EPPROM is 0 (DRY) else load all the details of the game
-  tempGame.mode = DRY;  //Write a code to read from EEPROM and load the whole game if not in dry run
+  tempGame.mode = DRY;  //WritesegmentStart a code to read from game mode from EEPROM   
+  tempGame.lastCheckpoint = STARTZONE;
+  tempGame.segmentStart = Game::dryPath[0];   //Replace 0 by completedSegments read from EEPROM
+  tempGame.completedSegments = 0;
+  tempGame.lastVertex.x = -1;
+  tempGame.lastVertex.y = 0;
+  tempGame.xOrient = EAST;
+  tempGame.yOrient = NOCHANGE;
   return tempGame;
 };
 
@@ -146,18 +218,40 @@ void setup(){
 }
 
 void loop(){
-    int i=49;
-    Serial.println("\n\nIndex=");
-    Serial.println(i);
-    Serial.println("\nLEFT =");
-    Serial.println(game.vertex[i].links[LEFT]);
-    Serial.println("\nRIGHT= ");
-    Serial.println(game.vertex[i].links[RIGHT]);
-    Serial.println("\nUP = ");
-    Serial.println(game.vertex[i].links[UP]);
-    Serial.println("\n DOWN = ");
-    Serial.println(game.vertex[i].links[DOWN]);
-
-  exit(0);
+  delay(2000);
+  Bot bot;
+  if (game.mode == DRY){
+    while(1){
+      bot.moveForward();
+      if(true || bot.nodeDetect()>PATH){
+       game.lastVertex.x += game.xOrient;
+       game.lastVertex.y += game.yOrient;
+       if (game.lastVertex.x == 7 && game.lastVertex.y == 3){
+        game.mode = WET;
+        //bot.ReadyForWet();
+       }
+      }
+      Serial.println("LastVertex:");
+      Serial.println(game.lastVertex.x);
+      Serial.println(game.lastVertex.y);
+      
+      if(Game::dryPath[game.completedSegments+1]==Vertex::getIndex(game.lastVertex.x, game.lastVertex.y)){
+        Serial.println("\n\nArrived");
+        game.completedSegments++;
+        game.xOrient = Vertex::dx(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);  
+        game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
+         
+         Serial.println("\n\nNew Orientation");
+         Serial.println(game.xOrient);
+         Serial.println(game.yOrient);
+         
+      }
+    }
+  }else{
     
+  }
+
+  delay(2000);
+  exit(0);
+  
 }
