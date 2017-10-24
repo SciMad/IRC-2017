@@ -54,7 +54,7 @@ public:
        vertex[t].type = REDPIT;
 
        t = Vertex::getIndex(5,4);            //between 4 and 5 so selecting  the value of coordinate to 5 arbitaryly ... use 4 if u want 
-       vertex[t].type = BLUEPIT;              //TODO baki kura sochera garnu parxcha
+       vertex[t].type = BLUEPIT;             
        
        t = Vertex::getIndex(8,4);
        vertex[t].type = PIT3;
@@ -74,29 +74,56 @@ public:
         
         t = Vertex::getIndex(2,3);         
         vertex[t].links[UP] = NOPATH;
-        
-        t = Vertex::getIndex(3,3);
-        vertex[t].links[UP] = NOPATH; 
+
+        t = Vertex::getIndex(2,4);         
+        vertex[t].links[DOWN] = NOPATH;
+
+        t = Vertex::getIndex(3,4);         
+        vertex[t].links[DOWN] = NOPATH;
+
+        t = Vertex::getIndex(4,4);         
+        vertex[t].links[LEFT] = Vertex::getIndex(3,4);
+        vertex[t].links[RIGHT] = Vertex::getIndex(5,4);
 
         t = Vertex::getIndex(5,4);
         vertex[t].links[LEFT] = Vertex::getIndex(4,4);
         vertex[t].links[RIGHT] = Vertex::getIndex(6,4);
         
+        t = Vertex::getIndex(3,3);
+        vertex[t].links[UP] = NOPATH; 
         
         t = Vertex::getIndex(6,3);
         vertex[t].links[UP] = NOPATH; 
         
         t = Vertex::getIndex(7,3);
-        vertex[t].links[UP] = NOPATH; 
-        
-        t = Vertex::getIndex(8,3);
+        vertex[t].links[RIGHT] = NOPATH; 
         vertex[t].links[UP] = NOPATH; 
         
         t = Vertex::getIndex(3,4);
         vertex[t].links[RIGHT] = Vertex::getIndex(4,4);
         
+        t = Vertex::getIndex(8,3);
+        vertex[t].links[LEFT] = NOPATH;
+        vertex[t].links[RIGHT] = NOPATH;
+        
+        t = Vertex::getIndex(9,3);
+        vertex[t].links[LEFT] = NOPATH;  
+        
         t = Vertex::getIndex(6,4);
-        vertex[t].links[RIGHT] = Vertex::getIndex(5,4);
+        vertex[t].links[LEFT] = Vertex::getIndex(5,4);
+        vertex[t].links[RIGHT] = Vertex::getIndex(7,4);
+        vertex[t].links[DOWN] = NOPATH;
+
+        t = Vertex::getIndex(7,4);
+        vertex[t].links[DOWN] = NOPATH;
+        
+
+        //TODO --> The Links of following vertices depends upon direction of inclination of See-Saw
+        //#Review
+        t = Vertex::getIndex(8,2); vertex[t].links[UP] = Vertex::getIndex(8,3);
+        t = Vertex::getIndex(8,4); vertex[t].links[DOWN] = Vertex::getIndex(8,3);
+        
+        
 
   }; //end of initialize
 } game; // end of IRC_GamePlay class;
@@ -119,8 +146,7 @@ void setup(){
 }
 
 void loop(){
-  for(int i=0;i<50 ;i++)
-  {
+    int i=49;
     Serial.println("\n\nIndex=");
     Serial.println(i);
     Serial.println("\nLEFT =");
@@ -131,10 +157,7 @@ void loop(){
     Serial.println(game.vertex[i].links[UP]);
     Serial.println("\n DOWN = ");
     Serial.println(game.vertex[i].links[DOWN]);
-  }
-  
 
-  
   exit(0);
     
 }
