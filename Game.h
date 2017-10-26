@@ -52,7 +52,7 @@ public:
     t = Vertex::getIndex(7,0);
     vertex[t].type = NODE;
     t = Vertex::getIndex(2,1);
-    vertex[t].type = BLOCKBASE;
+    vertex[t].type = BLOCK;
     t = Vertex::getIndex(3,1);
     vertex[t].type = NODE;
     t = Vertex::getIndex(8,1);
@@ -60,7 +60,7 @@ public:
     t = Vertex::getIndex(1,2);
     vertex[t].type = NODE;
     t = Vertex::getIndex(3,2);
-    vertex[t].type = BLOCKBASE;
+    vertex[t].type = BLOCK;
     t = Vertex::getIndex(9,2);
     vertex[t].type = NODE; 
   };
