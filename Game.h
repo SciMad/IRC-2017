@@ -33,21 +33,37 @@ public:
   int completedSegments;
   int xOrient, yOrient;
   Vertex lastVertex;
-  static const int dryPath[18];             //={0,3,13,10,20,23,33,30,40,49,9,8,28,27,7,6,36,37};
-  void loadFromEEPROM(){
-    Game tempGame;
-    //ReadEEPROM;
-    //if (first byte on EPPROM is 0 (DRY) else load all the details of the game
-    tempGame.mode = DRY;  //WritesegmentStart a code to read from game mode from EEPROM   
-    tempGame.lastCheckpoint = STARTZONE;
-    tempGame.segmentStart = Game::dryPath[0];   //Replace 0 by completedSegments read from EEPROM
-    tempGame.completedSegments = 0;
-    tempGame.lastVertex.x = -1;
-    tempGame.lastVertex.y = 0;
-    tempGame.xOrient = EAST;
-    tempGame.yOrient = NOCHANGE;
-    return tempGame;
-  }
+  static const int dryPath[18];                 //Might be good to make this array not static variable and initialize later, to provide flexibility.
+  void initializeDryRun(){
+    initializeVertex();
+    mode = DRY;
+    lastCheckpoint = STARTZONE;
+    segmentStart = Game::dryPath[0];
+    completedSegments = 0;
+    lastVertex.x = -1;
+    lastVertex.y = 0;
+    xOrient = EAST;
+    yOrient = NOCHANGE;
+  };
+  void simulateDryCompletion(){
+    int t;
+    t = Vertex::getIndex(2,0);
+    vertex[t].type = NODE;
+    t = Vertex::getIndex(7,0);
+    vertex[t].type = NODE;
+    t = Vertex::getIndex(2,1);
+    vertex[t].type = BLOCKBASE;
+    t = Vertex::getIndex(3,1);
+    vertex[t].type = NODE;
+    t = Vertex::getIndex(8,1);
+    vertex[t].type = NODE;
+    t = Vertex::getIndex(1,2);
+    vertex[t].type = NODE;
+    t = Vertex::getIndex(3,2);
+    vertex[t].type = BLOCKBASE;
+    t = Vertex::getIndex(9,2);
+    vertex[t].type = NODE; 
+  };
   void initializeVertex(){
     //vertex[0] = new Vertex
        int t;

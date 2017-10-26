@@ -1,4 +1,5 @@
 #include "Grid.h"
+
 class Bot{
 
   
@@ -28,7 +29,13 @@ class Bot{
   };
 
   void ReadyForWet(){
-    
+    while(1){
+      digitalWrite(13,HIGH);
+      delay(300);
+      digitalWrite(13,LOW);
+      delay(300);
+    }
+      
   };
   
   int ReadSensor(){

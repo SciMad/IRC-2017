@@ -1,6 +1,14 @@
 #include <EEPROM.h>
 #include <Arduino.h>  // for type definitions
 
+void clearEEPROM(){
+  for (int i=0; i<EEPROM.length(); ++i){
+    EEPROM.write(i,0);
+  }
+  Serial.println("EEPROM Cleared");
+  delay(500);
+}
+
 template <class T> int EEPROM_writeAnything(int ee, const T& value)
 {
     const byte* p = (const byte*)(const void*)&value;
@@ -18,3 +26,5 @@ template <class T> int EEPROM_readAnything(int ee, T& value)
           *p++ = EEPROM.read(ee++);
     return i;
 }
+
+

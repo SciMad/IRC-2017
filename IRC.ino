@@ -1,54 +1,69 @@
-#include "IRC.h"
+#include "Grid.h"
 #include "Bot.h"
 #include "Game.h"
 
 
 Game game;// end of Game class;
 
-void setup(){
+void setup(){  
   Serial.begin(9600);
-  game.loadFromEEPROM();
-  if (game.mode == DRY){
-    game.initializeVertex();
+  while(!Serial){
   }
+  //clearEEPROM();
+  //exit(0);
+
+  EEPROM_readAnything(0, game);
   
+  delay(2000);
+  if (game.mode != WET){
+    Serial.println("I am initializing dry run");
+    game.initializeDryRun();
+    Serial.println("Completed Initialization");
+  }
 }
 
 void loop(){
-  delay(2000);
   Bot bot;
-  if (game.mode == DRY){
+  if (game.mode != WET){
+    Serial.println("I am still dry");
     while(1){
       bot.moveForward();
       if(true || bot.nodeDetect()>PATH){
-       game.lastVertex.x += game.xOrient;
-       game.lastVertex.y += game.yOrient;
-       if (game.lastVertex.x == 7 && game.lastVertex.y == 3){
-        game.mode = WET;
-        //bot.ReadyForWet();
-       }
+        game.lastVertex.x += game.xOrient;
+        game.lastVertex.y += game.yOrient;
+        Serial.println("\n\nLastVertex:");
+        Serial.println(game.lastVertex.x);
+        Serial.println(game.lastVertex.y);
+        
+        if (game.lastVertex.x == 7 && game.lastVertex.y == 3){
+          Serial.println("Saved Wet");
+          game.simulateDryCompletion();
+          game.mode = WET;
+          EEPROM_writeAnything(0, game);
+          bot.ReadyForWet();
+        }
       }
-      Serial.println("LastVertex:");
-      Serial.println(game.lastVertex.x);
-      Serial.println(game.lastVertex.y);
       
       if(Game::dryPath[game.completedSegments+1]==Vertex::getIndex(game.lastVertex.x, game.lastVertex.y)){
-        Serial.println("\n\nArrived");
+        Serial.println("arrived");
         game.completedSegments++;
         game.xOrient = Vertex::dx(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);  
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
-         
-         Serial.println("\n\nNew Orientation");
-         Serial.println(game.xOrient);
-         Serial.println(game.yOrient);
-         
       }
     }
-  }else{
-    
+  }else {
+    while(1){
+      Serial.println("I am wet");
+      EEPROM_readAnything(0, game);
+      delay(1000);
+      for (int i=0; i<50; i++){
+        Serial.println(game.vertex[i].type);
+      }
+      delay(1000);
+      exit(0);
+    }
   }
 
-  delay(2000);
-  exit(0);
+  
   
 }
