@@ -65,15 +65,10 @@ public:
       leng[from] = 0;
 
       do{
-        Serial.println("\n\nFrom =");
-        Serial.println(from);
-        delay(3000);
         for (int i=0; i<4; i++){  //i = LEFT : 0, RIGHT : 1, UP : 2, DOWN : 3
           tempIndex = vertex[from].links[i];
-          if (tempIndex!=NOPATH){
-            Serial.println("Link:");
-            Serial.println(tempIndex);
-            delay(3000);
+          //if (tempIndex == 32) Serial.println(from);
+          if (tempIndex != NOPATH){
             if (vertex[tempIndex].visited != VISITED && leng[from]+1 < leng[tempIndex]){  //1 is the weight of graph
               leng[tempIndex] = leng[from]+1;
               via[tempIndex] = from;
@@ -81,16 +76,19 @@ public:
           }
         }
         scan[from] = VISITED;
+        Serial.println(from);
         tempLong = INF;
         for (int i=0; i<50; i++){
           if (scan[i] == UNVISITED){
-            if (leng[i]<tempLong) tempLong = i;
-            Serial.println(leng[i]);
+            if (leng[i]<tempLong) {
+              tempLong = leng[i];
+              from = i;
+            }
           }
-          from = tempLong;
         }
       }while (from != to);
-    delay(1000);
+      
+    delay(1000);exit(0);
   };
   
 
@@ -98,14 +96,17 @@ public:
    
   
   void removeLinksVia(int m, int n){  //TODO Improvise this function
-      if (m== 2 && n ==1){
+      if (m== 3 && n ==2){
         Serial.println("Removing");
         Serial.println(vertex[Vertex::getIndex(m,n)].links[LEFT]);
+        Serial.println(vertex[Vertex::getIndex(m,n)].links[RIGHT]);
+        Serial.println(vertex[Vertex::getIndex(m,n)].links[UP]);
+        Serial.println(vertex[Vertex::getIndex(m,n)].links[DOWN]);
       }
-      if (vertex[Vertex::getIndex(m,n)].links[LEFT] != NOPATH) vertex[Vertex::getIndex(m-1,n)].links[RIGHT] = NOPATH;
-      if (vertex[Vertex::getIndex(m,n)].links[RIGHT] != NOPATH) vertex[Vertex::getIndex(m+1,n)].links[LEFT] = NOPATH;
-      if (vertex[Vertex::getIndex(m,n)].links[UP] != NOPATH) vertex[Vertex::getIndex(m,n+1)].links[DOWN] = NOPATH;
-      if (vertex[Vertex::getIndex(m,n)].links[DOWN] != NOPATH) vertex[Vertex::getIndex(m,n-1)].links[UP] = NOPATH;
+      if (m-1>=0) vertex[Vertex::getIndex(m-1,n)].links[RIGHT] = NOPATH;
+      if (m+1<=9) vertex[Vertex::getIndex(m+1,n)].links[LEFT] = NOPATH;
+      if (n+1<=4) vertex[Vertex::getIndex(m,n+1)].links[DOWN] = NOPATH;
+      if (n-1>=0) vertex[Vertex::getIndex(m,n-1)].links[UP] = NOPATH;
   }
   void simulateDryCompletion(){
     int t;
@@ -135,7 +136,7 @@ public:
     
     t = Vertex::getIndex(3,2);
     vertex[t].type = BLOCK;
-    removeLinksVia(2, 0);
+    removeLinksVia(3, 2);
     
     t = Vertex::getIndex(9,2);
     vertex[t].type = NODE;
@@ -164,6 +165,7 @@ public:
        //======================================
        t = Vertex::getIndex(1,4);
        vertex[t].type = REDPIT;
+       removeLinksVia(1, 4);
 
        t = Vertex::getIndex(5,4);            //between 4 and 5 so selecting  the value of coordinate to 5 arbitaryly ... use 4 if u want 
        vertex[t].type = BLUEPIT;             
