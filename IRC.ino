@@ -56,9 +56,7 @@ void loop(){
       Serial.println("I am wet");
       EEPROM_readAnything(0, game);
       delay(1000);
-      for (int i=0; i<50; i++){
-        Serial.println(game.vertex[i].type);
-      }
+      game.findShortest(11,22);
       delay(1000);
       exit(0);
     }

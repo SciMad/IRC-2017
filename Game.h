@@ -24,6 +24,7 @@ public:
   
 };
 
+
 class Game{  
 public:
   RunMode mode;
@@ -45,24 +46,100 @@ public:
     xOrient = EAST;
     yOrient = NOCHANGE;
   };
+
+
+  class Path{
+      int index[20];
+      int leng;
+  }; 
+
+  void findShortest(int from, int to){
+      int leng[50], via[50];
+      Visit scan[50];
+      int tempIndex, tempLong;
+      for(int i=0; i<50; i++){
+          leng[i] = INF;
+          via[i] = from;
+          scan[i] = UNVISITED;
+      }
+      leng[from] = 0;
+
+      do{
+        Serial.println("\n\nFrom =");
+        Serial.println(from);
+        delay(3000);
+        for (int i=0; i<4; i++){  //i = LEFT : 0, RIGHT : 1, UP : 2, DOWN : 3
+          tempIndex = vertex[from].links[i];
+          if (tempIndex!=NOPATH){
+            Serial.println("Link:");
+            Serial.println(tempIndex);
+            delay(3000);
+            if (vertex[tempIndex].visited != VISITED && leng[from]+1 < leng[tempIndex]){  //1 is the weight of graph
+              leng[tempIndex] = leng[from]+1;
+              via[tempIndex] = from;
+            }
+          }
+        }
+        scan[from] = VISITED;
+        tempLong = INF;
+        for (int i=0; i<50; i++){
+          if (scan[i] == UNVISITED){
+            if (leng[i]<tempLong) tempLong = i;
+            Serial.println(leng[i]);
+          }
+          from = tempLong;
+        }
+      }while (from != to);
+    delay(1000);
+  };
+  
+
+
+   
+  
+  void removeLinksVia(int m, int n){  //TODO Improvise this function
+      if (m== 2 && n ==1){
+        Serial.println("Removing");
+        Serial.println(vertex[Vertex::getIndex(m,n)].links[LEFT]);
+      }
+      if (vertex[Vertex::getIndex(m,n)].links[LEFT] != NOPATH) vertex[Vertex::getIndex(m-1,n)].links[RIGHT] = NOPATH;
+      if (vertex[Vertex::getIndex(m,n)].links[RIGHT] != NOPATH) vertex[Vertex::getIndex(m+1,n)].links[LEFT] = NOPATH;
+      if (vertex[Vertex::getIndex(m,n)].links[UP] != NOPATH) vertex[Vertex::getIndex(m,n+1)].links[DOWN] = NOPATH;
+      if (vertex[Vertex::getIndex(m,n)].links[DOWN] != NOPATH) vertex[Vertex::getIndex(m,n-1)].links[UP] = NOPATH;
+  }
   void simulateDryCompletion(){
     int t;
-    t = Vertex::getIndex(2,0);
+    t = Vertex::getIndex(2, 0);
     vertex[t].type = NODE;
-    t = Vertex::getIndex(7,0);
+    removeLinksVia(2, 0);
+    
+    t = Vertex::getIndex(7, 0);
     vertex[t].type = NODE;
-    t = Vertex::getIndex(2,1);
+    removeLinksVia(7, 0);
+    
+    t = Vertex::getIndex(2, 1);
     vertex[t].type = BLOCK;
-    t = Vertex::getIndex(3,1);
+    removeLinksVia(2, 1);
+    
+    t = Vertex::getIndex(3, 1);
     vertex[t].type = NODE;
-    t = Vertex::getIndex(8,1);
+    removeLinksVia(3, 1);
+    
+    t = Vertex::getIndex(8, 1);
     vertex[t].type = NODE;
-    t = Vertex::getIndex(1,2);
+    removeLinksVia(8, 1);
+    
+    t = Vertex::getIndex(1, 2);
     vertex[t].type = NODE;
+    removeLinksVia(1, 2);
+    
     t = Vertex::getIndex(3,2);
     vertex[t].type = BLOCK;
+    removeLinksVia(2, 0);
+    
     t = Vertex::getIndex(9,2);
-    vertex[t].type = NODE; 
+    vertex[t].type = NODE;
+    removeLinksVia(2, 0); 
   };
   void initializeVertex(){
     //vertex[0] = new Vertex
