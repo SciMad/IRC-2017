@@ -95,52 +95,31 @@ public:
 
    
   
-  void removeLinksVia(int m, int n){  //TODO Improvise this function
-      if (m== 3 && n ==2){
-        Serial.println("Removing");
-        Serial.println(vertex[Vertex::getIndex(m,n)].links[LEFT]);
-        Serial.println(vertex[Vertex::getIndex(m,n)].links[RIGHT]);
-        Serial.println(vertex[Vertex::getIndex(m,n)].links[UP]);
-        Serial.println(vertex[Vertex::getIndex(m,n)].links[DOWN]);
-      }
-      if (m-1>=0) vertex[Vertex::getIndex(m-1,n)].links[RIGHT] = NOPATH;
-      if (m+1<=9) vertex[Vertex::getIndex(m+1,n)].links[LEFT] = NOPATH;
-      if (n+1<=4) vertex[Vertex::getIndex(m,n+1)].links[DOWN] = NOPATH;
-      if (n-1>=0) vertex[Vertex::getIndex(m,n-1)].links[UP] = NOPATH;
-  }
   void simulateDryCompletion(){
     int t;
     t = Vertex::getIndex(2, 0);
     vertex[t].type = NODE;
-    removeLinksVia(2, 0);
     
     t = Vertex::getIndex(7, 0);
     vertex[t].type = NODE;
-    removeLinksVia(7, 0);
     
     t = Vertex::getIndex(2, 1);
     vertex[t].type = BLOCK;
-    removeLinksVia(2, 1);
     
     t = Vertex::getIndex(3, 1);
     vertex[t].type = NODE;
-    removeLinksVia(3, 1);
     
     t = Vertex::getIndex(8, 1);
     vertex[t].type = NODE;
-    removeLinksVia(8, 1);
     
     t = Vertex::getIndex(1, 2);
     vertex[t].type = NODE;
-    removeLinksVia(1, 2);
     
     t = Vertex::getIndex(3,2);
     vertex[t].type = BLOCK;
-    removeLinksVia(3, 2);
     
     t = Vertex::getIndex(9,2);
     vertex[t].type = NODE;
-    removeLinksVia(2, 0); 
   };
   void initializeVertex(){
     //vertex[0] = new Vertex
@@ -165,7 +144,6 @@ public:
        //======================================
        t = Vertex::getIndex(1,4);
        vertex[t].type = REDPIT;
-       removeLinksVia(1, 4);
 
        t = Vertex::getIndex(5,4);            //between 4 and 5 so selecting  the value of coordinate to 5 arbitaryly ... use 4 if u want 
        vertex[t].type = BLUEPIT;             
