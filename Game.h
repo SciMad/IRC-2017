@@ -63,12 +63,12 @@ public:
           scan[i] = UNVISITED;
       }
       leng[from] = 0;
-
+      Serial.println("From:");
       do{
+        Serial.println(from);
         for (int i=0; i<4; i++){  //i = LEFT : 0, RIGHT : 1, UP : 2, DOWN : 3
           tempIndex = vertex[from].links[i];
-          //if (tempIndex == 32) Serial.println(from);
-          if (tempIndex != NOPATH){
+          if (vertex[tempIndex].type < NODE){
             if (vertex[tempIndex].visited != VISITED && leng[from]+1 < leng[tempIndex]){  //1 is the weight of graph
               leng[tempIndex] = leng[from]+1;
               via[tempIndex] = from;
@@ -76,10 +76,9 @@ public:
           }
         }
         scan[from] = VISITED;
-        Serial.println(from);
         tempLong = INF;
         for (int i=0; i<50; i++){
-          if (scan[i] == UNVISITED){
+          if (scan[i] == UNVISITED && (vertex[i].type < REDPIT || to == i)){
             if (leng[i]<tempLong) {
               tempLong = leng[i];
               from = i;
@@ -87,7 +86,12 @@ public:
           }
         }
       }while (from != to);
-      
+      Serial.println("Shortest Path");
+      int lastInd = to; 
+      for (int i=leng[to]; i>=0; i--){
+        Serial.println(via[lastInd]);
+        lastInd = via[lastInd];
+      }
     delay(1000);exit(0);
   };
   

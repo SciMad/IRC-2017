@@ -55,7 +55,7 @@ void loop(){
     while(1){
       Serial.println("I am wet");
       EEPROM_readAnything(0, game);
-      game.findShortest(0,12);
+      game.findShortest(39,36);
       delay(1000);
       exit(0);
     }
