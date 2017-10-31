@@ -1,10 +1,12 @@
+#ifndef GAME_H
+#define GAME_H
 #include "Grid.h"
 #include "EEPROMAnything.h"
 
 class Vertex{
 public:
   int x,y;
-  int index;                //int index(){return 10*y+x; };
+  //int index;                //int index(){return 10*y+x; };
   VertexType type;
   Link links[4];            //The elements of this array are the index of other linked vertices stored in order as LRUD (Left, Right, Up, Down)
   boolean visited;
@@ -13,6 +15,12 @@ public:
   };  
   static int getIndex(int m,int n){
     return m+10*n;
+  }
+  static int getX(int k){
+    return k%10;
+  }
+  static int getY(int k){
+    return k/10;
   }
 
   static Orientation dx(int index1,int index2){
@@ -33,6 +41,7 @@ public:
   int segmentStart;
   int completedSegments;
   int xOrient, yOrient;
+  Orientation arrow;
   Vertex lastVertex;
   int wetPath[50];
   static const int dryPath[18];                 //Might be good to make this array not static variable and initialize later, to provide flexibility.
@@ -64,9 +73,9 @@ public:
           scan[i] = UNVISITED;
       }
       leng[from] = 0;
-      Serial.println("From:");
+      //Serial.println("From:");
       do{
-        Serial.println(from);
+        //Serial.println(from);
         for (int i=0; i<4; i++){  //i = LEFT : 0, RIGHT : 1, UP : 2, DOWN : 3
           tempIndex = vertex[from].links[i];
           if (vertex[tempIndex].type < NODE){
@@ -91,14 +100,17 @@ public:
         if (prevFrom == from) break;
       }while (from != to);
       if (leng[to] == INF) {
-        Serial.println("Impossible");
+        //Serial.println("Impossible");
       }else{
-        Serial.println("Shortest Path");
         int lastInd = to;
         for (int i=0; i<leng[to]; i++){
+          lastInd = via[lastInd];               //Track back in Dijkstra Table for shortest Path
           wetPath[leng[to]-i-1] = lastInd;
-          Serial.println(via[lastInd]);
-          lastInd = via[lastInd];
+        }
+        wetPath[leng[to]] = to;
+        Serial.println("SP");
+        for (int i=0; i<leng[to]; i++){
+          Serial.println(wetPath[i]);
         }
       }
     return leng[to];
@@ -110,6 +122,8 @@ public:
   
   void simulateDryCompletion(){
     int t;
+    arrow = NORTH;
+    
     t = Vertex::getIndex(2, 0);
     vertex[t].type = NODE;
     
@@ -132,10 +146,9 @@ public:
     vertex[t].type = BLOCK;
     
     t = Vertex::getIndex(9,2);
-    vertex[t].type = NODE;
+vertex[t].type = NODE;
   };
   void initializeVertex(){
-    //vertex[0] = new Vertex
        int t;
        for (int i=0; i<10; i++){
           for (int j=0; j<5; j++){
@@ -151,7 +164,7 @@ public:
             
             vertex[t].type=VERTEX;
             vertex[t].visited=UNVISITED;  
-            vertex[t].index=t;
+            //vertex[t].index=t;
           }
        }
        //======================================
@@ -235,4 +248,4 @@ public:
   }; //end of initialize
 };
 const int Game::dryPath[18]= {0,3,13,10,20,23,33,30,40,49,9,8,28,27,7,6,36,37};
-
+#endif
