@@ -4,6 +4,8 @@ class Bot{
 
   
   public:
+  Color readBlockColor(){
+  };
   
   void moveForward(){
   
@@ -16,9 +18,15 @@ class Bot{
   void moveLeft(){
     
   };
-   void moveRight(){
+  
+  void moveRight(){
     
   };
+
+  void traverse(int*, int){
+    
+  }
+  
 
   VertexType nodeDetect(){    
     if (digitalRead(A0==HIGH)){

@@ -25,7 +25,7 @@ void setup(){
 void loop(){
   Bot bot;
   if (game.mode != WET){
-    Serial.println("I am still dry");
+    Serial.println("I am in Dry Run");
     while(1){
       bot.moveForward();
       if(true || bot.nodeDetect()>PATH){
@@ -44,7 +44,7 @@ void loop(){
         }
       }
       
-      if(Game::dryPath[game.completedSegments+1]==Vertex::getIndex(game.lastVertex.x, game.lastVertex.y)){
+      if(Game::dryPath[game.completedSegments+1] == Vertex::getIndex(game.lastVertex.x, game.lastVertex.y)){
         Serial.println("arrived");
         game.completedSegments++;
         game.xOrient = Vertex::dx(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);  
@@ -52,13 +52,45 @@ void loop(){
       }
     }
   }else {
-    while(1){
-      Serial.println("I am wet");
+      Serial.println("I am in Actual Run");
       EEPROM_readAnything(0, game);
-      game.findShortest(39,36);
+      int blockCount = 0, block1, block2, d1,d2, tempBlock, pathLength;
+      for (int i=0; i<50; i++){
+        if (game.vertex[i].type == BLOCK){
+          blockCount++;
+          if (blockCount == 1) block1 = i;  
+          if (blockCount == 2) block2 = i;
+        }
+      }
+      if (game.findShortest(0,block1) > game.findShortest(0,block2)){
+        tempBlock = block1;
+        block1 = block2;
+        block2 = block1;
+      }
+
+      pathLength = game.findShortest(0,block1);
+      bot.traverse(game.wetPath, pathLength);
+      
+      Color color = bot.readBlockColor();
+      
+      if (color == BLUE){
+        // go from current position to transfer zone{EITHER ((0,2) /* to confirm direction of arrow*/ AND then to transfer zone) OR directly to transfer zone }
+        // go to other block
+        // go to (4,1)
+      }else{//color == RED
+        // go from current position to (4,1)
+        // return to other block
+        // go to transfer zone
+      }
+
+      
+      
+
+      
+      
+      
       delay(1000);
       exit(0);
-    }
   }
 
   

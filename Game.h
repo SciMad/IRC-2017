@@ -34,6 +34,7 @@ public:
   int completedSegments;
   int xOrient, yOrient;
   Vertex lastVertex;
+  int wetPath[50];
   static const int dryPath[18];                 //Might be good to make this array not static variable and initialize later, to provide flexibility.
   void initializeDryRun(){
     initializeVertex();
@@ -53,10 +54,10 @@ public:
       int leng;
   }; 
 
-  void findShortest(int from, int to){
+  int findShortest(int from, int to){
       int leng[50], via[50];
       Visit scan[50];
-      int tempIndex, tempLong;
+      int tempIndex, tempLong, prevFrom;
       for(int i=0; i<50; i++){
           leng[i] = INF;
           via[i] = from;
@@ -72,11 +73,13 @@ public:
             if (vertex[tempIndex].visited != VISITED && leng[from]+1 < leng[tempIndex]){  //1 is the weight of graph
               leng[tempIndex] = leng[from]+1;
               via[tempIndex] = from;
-            }
+            }else{
+          }
           }
         }
         scan[from] = VISITED;
         tempLong = INF;
+        prevFrom = from;
         for (int i=0; i<50; i++){
           if (scan[i] == UNVISITED && (vertex[i].type < REDPIT || to == i)){
             if (leng[i]<tempLong) {
@@ -85,14 +88,20 @@ public:
             }
           }
         }
+        if (prevFrom == from) break;
       }while (from != to);
-      Serial.println("Shortest Path");
-      int lastInd = to; 
-      for (int i=leng[to]; i>=0; i--){
-        Serial.println(via[lastInd]);
-        lastInd = via[lastInd];
+      if (leng[to] == INF) {
+        Serial.println("Impossible");
+      }else{
+        Serial.println("Shortest Path");
+        int lastInd = to;
+        for (int i=0; i<leng[to]; i++){
+          wetPath[leng[to]-i-1] = lastInd;
+          Serial.println(via[lastInd]);
+          lastInd = via[lastInd];
+        }
       }
-    delay(1000);exit(0);
+    return leng[to];
   };
   
 
@@ -174,6 +183,9 @@ public:
         t = Vertex::getIndex(2,4);         
         vertex[t].links[DOWN] = NOPATH;
 
+        t = Vertex::getIndex(3,3);
+        vertex[t].links[UP] = NOPATH; 
+        
         t = Vertex::getIndex(3,4);         
         vertex[t].links[DOWN] = NOPATH;
 
@@ -184,9 +196,6 @@ public:
         t = Vertex::getIndex(5,4);
         vertex[t].links[LEFT] = Vertex::getIndex(4,4);
         vertex[t].links[RIGHT] = Vertex::getIndex(6,4);
-        
-        t = Vertex::getIndex(3,3);
-        vertex[t].links[UP] = NOPATH; 
         
         t = Vertex::getIndex(6,3);
         vertex[t].links[UP] = NOPATH; 
@@ -212,11 +221,13 @@ public:
 
         t = Vertex::getIndex(7,4);
         vertex[t].links[DOWN] = NOPATH;
+        vertex[t].links[LEFT] = NOPATH;
+        vertex[t].links[RIGHT] = NOPATH;
         
 
         //TODO --> The Links of following vertices depends upon direction of inclination of See-Saw
         //#Review
-        t = Vertex::getIndex(8,2); vertex[t].links[UP] = Vertex::getIndex(8,3);
+        t = Vertex::getIndex(8,2); vertex[t].links[UP] = NOPATH;
         t = Vertex::getIndex(8,4); vertex[t].links[DOWN] = Vertex::getIndex(8,3);
         
         
