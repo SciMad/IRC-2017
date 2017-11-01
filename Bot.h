@@ -7,7 +7,7 @@ class Bot{
   Vertex lastVertex;
   Color readBlockColor(){
     // Communicate with RPI and get the color from Serial
-    Serial.println("I am Detecting Madhav Humagain २२. आफूले लेखेका स्टाटस् जति चैँ सबै सेयर गर्नुहुन अनुरोध नगर्ने।Color");
+    Serial.println("I am Detecting Color");
     return BLUE;
   };
   void initializeWetRun(){
@@ -47,7 +47,7 @@ class Bot{
     
   };
 
-  void traverse(int* p, int l){
+  void traverse(int* p, int l, VertexType type){
     Serial.println("OrBT" ); //My orientation before TRAVERSE is
     Serial.println(xOrient);
     Serial.println(yOrient);
@@ -62,7 +62,11 @@ class Bot{
     
     Serial.println("Len");     //Length of path:
     Serial.println(l);
-    for(int i=0; i<l-1; i++){       //Length of Path is one less than the length of array of vertex
+    int flag = 0;
+    if(type >= REDPIT){
+      flag = 1;
+    }
+    for(int i=0; i<l-flag; i++){       //Length of Path is one less than the length of array of vertex
       Serial.println("I am at ");
       Serial.println(p[i]);
       Serial.println("Ort" );       //My orientation is
@@ -106,7 +110,13 @@ class Bot{
       Serial.println("ROT");    //I am rotating
       //Write Function to rotate the bot to required orientation
       Serial.println("ROTC & Dr2D"); //Rotation Completed:
-    }    
+    }
+    if(type == TRANSFERZONE || type == PHOTOPOINT){
+      Serial.println("Rot2Wst");
+      rotateTo(WEST, NOCHANGE);
+      xOrient = WEST;
+      yOrient = NOCHANGE;
+    }
   }
   
 
@@ -118,6 +128,14 @@ class Bot{
       return PATH;
     }
   };
+
+  void rotateTo(Orientation finalX, Orientation finalY){
+    //read bot.xorient, bot.yOirent and use a logic to turn the bot tothe destination
+  }
+
+  void fillPit(){
+    
+  }
 
   void ReadyForWet(){
     while(1){

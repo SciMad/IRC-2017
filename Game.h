@@ -108,9 +108,9 @@ public:
           wetPath[leng[to]-i-1] = lastInd;
         }
         wetPath[leng[to]] = to;
-        Serial.println("SP");
+        //Serial.println("SP");
         for (int i=0; i<leng[to]; i++){
-          Serial.println(wetPath[i]);
+          //Serial.println(wetPath[i]);
         }
       }
     return leng[to];
@@ -167,6 +167,15 @@ vertex[t].type = NODE;
             //vertex[t].index=t;
           }
        }
+
+       
+        t = Vertex::getIndex(0,1);
+        vertex[t].type = TRANSFERZONE;
+
+        
+        t = Vertex::getIndex(0,4);
+        vertex[t].type = TRANSFERZONE;
+        
        //======================================
        t = Vertex::getIndex(1,4);
        vertex[t].type = REDPIT;
@@ -179,6 +188,11 @@ vertex[t].type = NODE;
         //======================================== above this are co ordinate for pits
 
         //========================================below this are coordinate for PHOTOPOINT
+
+        t = Vertex::getIndex(0,2);
+        vertex[t].type = PHOTOPOINT;
+        
+        
         t = Vertex::getIndex(6,0);
         vertex[t].type = PHOTOPOINT;
         
