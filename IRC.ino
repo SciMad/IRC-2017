@@ -183,9 +183,7 @@ void loop(){
         bot.rotate180();
         //Adjust back to last vertex
         bot.moveUntil(game.vertex[to].type);
-        Serial.println("MHere");
-
-
+        
         to = block2;
         d1 = game.findShortest(Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y), to);
         bot.traverse(game.wetPath, d1, game.vertex[to].type);
@@ -209,10 +207,56 @@ void loop(){
         }
         bot.fillPit();
         Serial.println("PitFilled");
-      }else{//game.vertex[type] == PIT
+        bot.moveUntil(VERTEX);  // bot.moveUntil(DEPOSITED) is equivalent to and hence is replaced by bot.moveUntil(VERTEX)
+      }else{//game.vertex[type] == REDPIT
+        game.vertex[to].type = DEPOSITED;
+        d1 = game.findShortest(to, block2);
+        d2 = game.findShortest(Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y), block2);
+        if (d1 < d2){
+          bot.moveUntil(VERTEX);  // bot.moveUntil(DEPOSITED) is equivalent to and hence is replaced by bot.moveUntil(VERTEX)
+          bot.lastVertex.x = Vertex::getX(to);
+          bot.lastVertex.y = Vertex::getY(to);
+        }else{
+          bot.rotate180();
+          bot.moveUntil(game.vertex[Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y)].type); 
+        }
         
+        d1 = game.findShortest(Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y), block2);
+        bot.traverse(game.wetPath, d1, BLOCK);
+        if (game.arrow == NORTH){
+          to = Vertex::getIndex(0, 4);
+        }else{
+          to = Vertex::getIndex(0, 1);
+        }
+        bot.gripBlock();
+        game.vertex[block2].type = BLOCKBASE;
+        Serial.println("B2BBC"); //Vertex Type Converted from BLOCK to BLOCKBASE
+        d1 = game.findShortest(block2, to); d2 = game.findShortest(Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y), to);   //At least one is not infinite
+        if (d1<d2){                   //It's shorter to move first block via BlockBase
+          Serial.println("ViaBB");    //It's shorter to go via BlockBase
+          bot.moveUntil(BLOCKBASE);
+          bot.lastVertex.x = Vertex::getX(block2);
+          bot.lastVertex.y = Vertex::getY(block2);
+          d1 = game.findShortest(block2, to);
+          bot.traverse(game.wetPath, d1, game.vertex[to].type);
+        }
+        else
+        {                                  //It's shorter to move first block via Last Vertex
+          Serial.println("ViaLV\nRot-180");     //It's shorter to go via Last Vertex
+          bot.rotate180();
+          bot.moveUntil(game.vertex[to].type);
+          d1 = game.findShortest(Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y), to);
+          bot.traverse(game.wetPath, d2, game.vertex[to].type);
+        }
+        bot.fillTransferZone();
+        Serial.println("B2BT");   //Block2 transferred to TZ
+        bot.rotate180();
+        //Adjust back to last vertex
+        bot.moveUntil(game.vertex[to].type);
+        d1 = game.findShortest(to, Vertex::getIndex(1,4));
+        bot.traverse(game.wetPath, d1, DEPOSITED);    //bot.traverse(game.wetPath, d1, VERTEX);
       }
-      
+      Serial.println("LeftGridComplete");
 
       
       delay(2000);
