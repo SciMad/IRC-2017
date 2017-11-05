@@ -19,21 +19,31 @@ class Bot{
   }
   
   void moveForward(){
-    Serial.println("MOVF");   //I am moving Forward
+    
   };
 
   void gripBlock(){
     Serial.println("GRP");    //I am gripping
-  }
+  };
+
+  void fillTransferZone(){
+    
+  };
+
+  void moveUntil(VertexType vertexType){
+    do{
+      moveForward();
+    }while(nodeDetect() != vertexType);   //Reach (0,0)
+  };
 
   void rotate180(){
     xOrient = -1 * xOrient;
     yOrient = -1 * yOrient;
-    //Serial.println("Rotated 180");
+    Serial.println("R180");
     //Serial.println("New Orientation is:");
     //Serial.println(xOrient);
     //Serial.println(yOrient);
-  }
+  };
 
   void moveBackward(){
     
@@ -58,7 +68,7 @@ class Bot{
     Serial.println(p[0]);
     Serial.println("----");   
     
-    int prevXOrient = xOrient, prevYOrient = yOrient;
+    int prevXOrient = xOrient, prevYOrient  = yOrient;
     
     Serial.println("Len");     //Length of path:
     Serial.println(l);
@@ -119,14 +129,10 @@ class Bot{
     }
   }
   
-
   VertexType nodeDetect(){
-    return VERTEX; 
-    if (digitalRead(A0==HIGH)){
-      return VERTEX;
-    }else{
-      return PATH;
-    }
+    if (digitalRead(2) == HIGH) {Serial.println("TZDec"); return TRANSFERZONE; }
+    if (digitalRead(3) == HIGH) {Serial.println("VDec"); return VERTEX; }
+    return PATH;
   };
 
   void rotateTo(Orientation finalX, Orientation finalY){
