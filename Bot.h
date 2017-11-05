@@ -8,7 +8,7 @@ class Bot{
   Color readBlockColor(){
     // Communicate with RPI and get the color from Serial
     Serial.println("I am Detecting Color");
-    return BLUE;
+    return RED;
   };
   void initializeWetRun(){
     VertexType detect;
@@ -132,6 +132,7 @@ class Bot{
   VertexType nodeDetect(){
     if (digitalRead(2) == HIGH) {Serial.println("TZDec"); return TRANSFERZONE; }
     if (digitalRead(3) == HIGH) {Serial.println("VDec"); return VERTEX; }
+    if (digitalRead(4) == HIGH) {Serial.println("VDec"); return BLOCKBASE; }
     return PATH;
   };
 

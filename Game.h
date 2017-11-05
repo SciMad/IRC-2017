@@ -122,7 +122,7 @@ public:
   
   void simulateDryCompletion(){
     int t;
-    arrow = NORTH;
+    arrow = SOUTH;
     
     t = Vertex::getIndex(2, 0);
     vertex[t].type = NODE;
@@ -130,7 +130,7 @@ public:
     t = Vertex::getIndex(7, 0);
     vertex[t].type = NODE;
     
-    t = Vertex::getIndex(2, 1);
+    t = Vertex::getIndex(0, 0);
     vertex[t].type = BLOCK;
     
     t = Vertex::getIndex(3, 1);

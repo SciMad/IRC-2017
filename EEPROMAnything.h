@@ -6,7 +6,7 @@ void clearEEPROM(){
     EEPROM.write(i,0);
   }
   Serial.println("CLR");
-  delay(500);
+  delay(1000);
 }
 
 template <class T> int EEPROM_writeAnything(int ee, const T& value)

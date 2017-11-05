@@ -11,9 +11,9 @@ void setup(){
   }
   pinMode(2, INPUT);
   pinMode(3, INPUT);
+  pinMode(4, INPUT);
   
-  //clearEEPROM();
-  //exit(0);
+  //clearEEPROM(); exit(0);
 
   EEPROM_readAnything(0, game);
   
@@ -71,6 +71,8 @@ void loop(){
           if (blockCount == 2) block2 = i;
         }
       }
+      Serial.println(block1);
+      Serial.println(block2);
       //#2 Find closer Block
       pathLength = game.findShortest(0,block1);
       if (game.findShortest(0,block1) > game.findShortest(0,block2)){
@@ -78,11 +80,11 @@ void loop(){
         block1 = block2;
         block2 = block1;
       }
-      
       pathLength = game.findShortest(0,block1); 
       //#3 Find if The Block is at starting vertex
       if (pathLength == 0)
       {   //Just In Case Blockbase appears at (0,0)
+        Serial.println("Pathlength0");
         color = bot.readBlockColor();
         bot.gripBlock();
         game.vertex[Vertex::getIndex(0,0)].type = BLOCKBASE;
@@ -152,6 +154,8 @@ void loop(){
           bot.lastVertex.x = Vertex::getX(block1);
           bot.lastVertex.y = Vertex::getY(block1);
           d1 = game.findShortest(block1, to);
+          Serial.println(d1);
+          //Serial.println("Bye");delay(1000);exit(0);
           bot.traverse(game.wetPath, d1, game.vertex[to].type);
         }
         else
@@ -246,7 +250,7 @@ void loop(){
           bot.rotate180();
           bot.moveUntil(game.vertex[to].type);
           d1 = game.findShortest(Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y), to);
-          bot.traverse(game.wetPath, d2, game.vertex[to].type);
+          bot.traverse(game.wetPath, d1, game.vertex[to].type);
         }
         bot.fillTransferZone();
         Serial.println("B2BT");   //Block2 transferred to TZ
@@ -260,6 +264,7 @@ void loop(){
 
       
       delay(2000);
+      
       exit(0);
 
       
