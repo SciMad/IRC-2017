@@ -78,12 +78,12 @@ void loop(){
       if (game.findShortest(0,block1) > game.findShortest(0,block2)){
         tempBlock = block1;
         block1 = block2;
-        block2 = block1;
+        block2 = tempBlock;
       }
       pathLength = game.findShortest(0,block1); 
       //#3 Find if The Block is at starting vertex
       if (pathLength == 0)
-      {   //Just In Case Blockbase appears at (0,0)
+      {   //Just In Case Blockbase dappears at (0,0)
         Serial.println("Pathlength0");
         color = bot.readBlockColor();
         bot.gripBlock();
@@ -216,6 +216,7 @@ void loop(){
         game.vertex[to].type = DEPOSITED;
         d1 = game.findShortest(to, block2);
         d2 = game.findShortest(Vertex::getIndex(bot.lastVertex.x, bot.lastVertex.y), block2);
+        Serial.println(block1); Serial.println(block2); delay(2000); exit(0);
         if (d1 < d2){
           bot.moveUntil(VERTEX);  // bot.moveUntil(DEPOSITED) is equivalent to and hence is replaced by bot.moveUntil(VERTEX)
           bot.lastVertex.x = Vertex::getX(to);

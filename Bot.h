@@ -130,9 +130,9 @@ class Bot{
   }
   
   VertexType nodeDetect(){
-    if (digitalRead(2) == HIGH) {Serial.println("TZDec"); return TRANSFERZONE; }
-    if (digitalRead(3) == HIGH) {Serial.println("VDec"); return VERTEX; }
-    if (digitalRead(4) == HIGH) {Serial.println("VDec"); return BLOCKBASE; }
+    if (digitalRead(2) == HIGH) {Serial.println("TZ Detected"); return TRANSFERZONE; }
+    if (digitalRead(3) == HIGH) {Serial.println("Vertex Detected"); return VERTEX; }
+    if (digitalRead(4) == HIGH) {Serial.println("BLOCKBASE Detected"); return BLOCKBASE; }
     return PATH;
   };
 

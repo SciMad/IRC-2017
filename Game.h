@@ -113,6 +113,7 @@ public:
           //Serial.println(wetPath[i]);
         }
       }
+    if (leng[to] == INF) Serial.println("PathLength=INF");
     return leng[to];
   };
   
@@ -130,7 +131,7 @@ public:
     t = Vertex::getIndex(7, 0);
     vertex[t].type = NODE;
     
-    t = Vertex::getIndex(0, 0);
+    t = Vertex::getIndex(0, 4);
     vertex[t].type = BLOCK;
     
     t = Vertex::getIndex(3, 1);
