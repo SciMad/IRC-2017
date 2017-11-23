@@ -17,7 +17,7 @@ const VertexType PATH = 0 ,VERTEX = 1, TRANSFERZONE = 2, PHOTOPOINT = 3, BLOCKBA
 const Visit VISITED=1, UNVISITED=0;
 const int INF = 999;
 enum Color {RED, BLUE};
-
+const int BLACK = 0, WHITE = 1;
 class Math{
   public:
   static int sgn(int v) {

@@ -9,13 +9,31 @@ void setup(){
   Serial.begin(9600);
   while(!Serial){
   }
-  pinMode(2, INPUT);
-  pinMode(3, INPUT);
-  pinMode(4, INPUT);
+
+  pinMode(10, INPUT);               //Sensor
+  pinMode(11, INPUT);               //Sensor
+  pinMode(12, INPUT);               //Sensor
+ 
+  pinMode(13, OUTPUT);              //Buzzer
+  pinMode(3, OUTPUT);               //Left PWM
+  pinMode(9, OUTPUT);               //Right PWM
   
+  pinMode(5, OUTPUT);               //Motor
+  pinMode(6, OUTPUT);
+  pinMode(7, OUTPUT);
+  pinMode(8, OUTPUT);
+
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
+
   //clearEEPROM(); exit(0);
 
-  EEPROM_readAnything(0, game);
+  EEPROM_readAnything(0, game);http://downloads.arduino.cc/packages/package_index.json file signature verification failed. File ignored.
+
   
   delay(1000);
   if (game.mode != WET){
@@ -27,6 +45,42 @@ void setup(){
 
 void loop(){
   Bot bot;
+  
+  float RPM = 150, rightRPM, leftRPM;
+  int error = 0;
+  int Kp = 25;
+  digitalWrite(13, HIGH);
+  delay(300);
+  digitalWrite(13, LOW);
+
+  while(1){
+    error = bot.getError();
+    rightRPM = (RPM + Kp * error); leftRPM = (RPM - Kp * error);
+    bot.moveForward(leftRPM, rightRPM);
+    if (bot.nodeDetect() == VERTEX){
+      digitalWrite(13, HIGH);
+      delay(100);
+      digitalWrite(13, LOW);
+      while(1){
+        bot.moveForward(100, 100);
+        if (digitalRead(A5) == LOW){
+          bot.stopMoving();
+          digitalWrite(13, HIGH);
+          delay(100);
+          digitalWrite(13, LOW);
+          delay(100);
+          digitalWrite(13, HIGH);
+          delay(100);
+          digitalWrite(13, LOW);
+          exit(0);
+        }
+      }
+    }
+    
+    
+  }
+  
+  
   if (game.mode != WET)
   {    //Dry RUN
     Serial.println("IDr");  //In Dry RUN

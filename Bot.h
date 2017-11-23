@@ -1,11 +1,16 @@
 #include "Grid.h"
 #include "Game.h"
 
+typedef int MotorDirection;
+const MotorDirection FORWARD = 1, BACKWARD = -1, STOP = 0;
+int maxRPM = 200;
+
 class Bot{
   public:
   int xOrient, yOrient;
   Vertex lastVertex;
-  Color readBlockColor(){
+  Color readBlockColor(){ 
+    
     // Communicate with RPI and get the color from Serial
     Serial.println("I am Detecting Color");
     return RED;
@@ -17,11 +22,75 @@ class Bot{
     lastVertex.x = -1;
     lastVertex.y = 0;
   }
-  
   void moveForward(){
     
+  }
+  void moveForward(int leftRPM, int rightRPM){
+    int rightPWM, leftPWM;
+    rightPWM = (rightRPM*255/maxRPM);
+    leftPWM = (leftRPM*255/maxRPM);
+    analogWrite(3, leftPWM);
+    analogWrite(9, rightPWM);
+    leftMotor(FORWARD);
+    rightMotor(FORWARD);
   };
 
+  void stopMoving(){
+    leftMotor(STOP);
+    rightMotor(STOP);
+     
+  };
+  
+  void leftMotor(MotorDirection motorDirection){
+    switch (motorDirection){
+      case FORWARD:
+        digitalWrite(5,HIGH);
+        digitalWrite(6,LOW);
+      break;
+      
+      case BACKWARD:
+        digitalWrite(6,HIGH);
+        digitalWrite(5,LOW);
+      break;
+      
+      case STOP:
+        digitalWrite(5,LOW);
+        digitalWrite(6,LOW);
+      break;
+      
+      default:
+      break;
+    }
+  };
+  void rightMotor(MotorDirection motorDirection){
+    switch (motorDirection){
+      case FORWARD:
+        digitalWrite(7,HIGH);
+        digitalWrite(8,LOW);
+      break;
+      
+      case BACKWARD:
+        digitalWrite(7,LOW);
+        digitalWrite(8, HIGH);
+      break;
+                                                                    
+      case STOP:
+        digitalWrite(7,LOW);
+        digitalWrite(8,LOW);
+      break;
+      
+      default:
+      break;
+    }
+  };
+  int getError(){
+  int error = 0;
+    if (digitalRead(A1) == WHITE) {error = 1;}
+    if (digitalRead(A1) == WHITE && digitalRead(A2) == BLACK) error = 2;
+    if (digitalRead(A3) == WHITE) error = -1;
+    if (digitalRead(A3) == WHITE && digitalRead(A2) == BLACK) error = -2;
+    return error;
+  }
   void gripBlock(){
     Serial.println("GRP");    //I am gripping
   };
@@ -130,9 +199,10 @@ class Bot{
   }
   
   VertexType nodeDetect(){
-    if (digitalRead(2) == HIGH) {Serial.println("TZ Detected"); return TRANSFERZONE; }
-    if (digitalRead(3) == HIGH) {Serial.println("Vertex Detected"); return VERTEX; }
-    if (digitalRead(4) == HIGH) {Serial.println("BLOCKBASE Detected"); return BLOCKBASE; }
+    //if (digitalRead(2) == HIGH) {Serial.println("TZ Detected"); return TRANSFERZONE; }
+    //if (digitalRead(3) == HIGH) {Serial.println("Vertex Detected"); return VERTEX; }
+    //if (digitalRead(4) == HIGH) {Serial.println("BLOCKBASE Detected"); return BLOCKBASE; }
+    if (digitalRead(A1) == WHITE && digitalRead(A2) == WHITE && digitalRead(A3) == WHITE ) { return VERTEX;}
     return PATH;
   };
 
