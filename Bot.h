@@ -26,22 +26,18 @@ class Bot{
     
   }
   void moveForward(int leftRPM, int rightRPM){
-    int rightPWM, leftPWM;
-    rightPWM = (rightRPM*255/maxRPM);
-    leftPWM = (leftRPM*255/maxRPM);
-    analogWrite(3, leftPWM);
-    analogWrite(9, rightPWM);
-    leftMotor(FORWARD);
-    rightMotor(FORWARD);
+    leftMotor(FORWARD, leftRPM);
+    rightMotor(FORWARD, rightRPM);
   };
 
   void stopMoving(){
-    leftMotor(STOP);
-    rightMotor(STOP);
-     
+    leftMotor(STOP, 0);
+    rightMotor(STOP, 0);
   };
   
-  void leftMotor(MotorDirection motorDirection){
+  void leftMotor(MotorDirection motorDirection, int RPM){
+    float PWM = (RPM*255/maxRPM);
+    analogWrite(3, PWM);
     switch (motorDirection){
       case FORWARD:
         digitalWrite(5,HIGH);
@@ -62,7 +58,10 @@ class Bot{
       break;
     }
   };
-  void rightMotor(MotorDirection motorDirection){
+  void rightMotor(MotorDirection motorDirection, int RPM){
+    float PWM = (RPM*255/maxRPM);
+    
+    analogWrite(9, PWM);
     switch (motorDirection){
       case FORWARD:
         digitalWrite(7,HIGH);
@@ -87,8 +86,11 @@ class Bot{
   int error = 0;
     if (digitalRead(A1) == WHITE) {error = 1;}
     if (digitalRead(A1) == WHITE && digitalRead(A2) == BLACK) error = 2;
+    if (digitalRead(A0) == WHITE && digitalRead(A2) == BLACK) error = 3;
+    
     if (digitalRead(A3) == WHITE) error = -1;
     if (digitalRead(A3) == WHITE && digitalRead(A2) == BLACK) error = -2;
+    if (digitalRead(A4) == WHITE && digitalRead(A2) == BLACK) error = -3;
     return error;
   }
   void gripBlock(){
@@ -100,9 +102,16 @@ class Bot{
   };
 
   void moveUntil(VertexType vertexType){
-    do{
-      moveForward();
-    }while(nodeDetect() != vertexType);   //Reach (0,0)
+
+    while(1){
+        moveForward(100, 100);
+        if (digitalRead(A5) == LOW){
+          break;
+        }
+      }
+    //do{
+    //  moveForward();
+    //}while(nodeDetect() != vertexType);   //Reach (0,0)
   };
 
   void rotate180(){
@@ -113,17 +122,54 @@ class Bot{
     //Serial.println(xOrient);
     //Serial.println(yOrient);
   };
+  void beep(){
+    digitalWrite(13, HIGH);
+    delay(100);
+    digitalWrite(13, LOW);
+    delay(100);
+    digitalWrite(13, HIGH);
+    delay(100);
+    digitalWrite(13, LOW);
+  }
 
   void moveBackward(){
     
   };
 
   void moveLeft(){
-    
+    int error = 4;
+    int rotateRPM = 90, RPM;
+    //int Kp = 25;
+    int flag[5] = {0, 0, 0, 0, 0};
+    while(error){
+      RPM = rotateRPM;
+      
+      leftMotor(BACKWARD, RPM);
+      rightMotor(FORWARD, RPM);
+      
+      if (digitalRead(A0) == WHITE && flag[0] == 0) {error--; error--; flag[0] = 1; rotateRPM = 60;}
+      if (digitalRead(A1) == WHITE && flag[1] == 0) {error--; error--; flag[1] = 1; }
+      //if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1; }
+    }
+    leftMotor(STOP, 0);
+    rightMotor(STOP, 0);
   };
   
   void moveRight(){
-    
+    int error = 4;
+    int rotateRPM = 90, RPM;
+    //int Kp = 25;
+    int flag[5] = {0, 0, 0, 0, 0};
+    while(error){
+      RPM = rotateRPM ;
+      leftMotor(FORWARD, RPM);
+      rightMotor(BACKWARD, RPM);
+      if (digitalRead(A4) == WHITE && flag[0] == 0) {error--; error--; flag[0] = 1; rotateRPM = 60;}
+      if (digitalRead(A3) == WHITE && flag[1] == 0) {error--; error--; flag[1] = 1;}
+      //if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1; }
+    }
+    leftMotor(STOP, 0);
+    rightMotor(STOP, 0);
   };
 
   void traverse(int* p, int l, VertexType type){
@@ -205,7 +251,7 @@ class Bot{
     if (digitalRead(A1) == WHITE && digitalRead(A2) == WHITE && digitalRead(A3) == WHITE ) { return VERTEX;}
     return PATH;
   };
-
+ 
   void rotateTo(Orientation finalX, Orientation finalY){
     //read bot.xorient, bot.yOirent and use a logic to turn the bot tothe destination
   }
@@ -215,12 +261,9 @@ class Bot{
   }
 
   void ReadyForWet(){
-    while(1){
-      digitalWrite(13,HIGH);
-      delay(300);
-      digitalWrite(13,LOW);
-      delay(300);
-    }
+    beep();
+    beep();
+    beep(); `
       
   };
   

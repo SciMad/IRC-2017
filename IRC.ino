@@ -47,46 +47,23 @@ void loop(){
   Bot bot;
   
   float RPM = 150, rightRPM, leftRPM;
-  int error = 0;
-  int Kp = 25;
-  digitalWrite(13, HIGH);
-  delay(300);
-  digitalWrite(13, LOW);
-
-  while(1){
-    error = bot.getError();
-    rightRPM = (RPM + Kp * error); leftRPM = (RPM - Kp * error);
-    bot.moveForward(leftRPM, rightRPM);
-    if (bot.nodeDetect() == VERTEX){
-      digitalWrite(13, HIGH);
-      delay(100);
-      digitalWrite(13, LOW);
-      while(1){
-        bot.moveForward(100, 100);
-        if (digitalRead(A5) == LOW){
-          bot.stopMoving();
-          digitalWrite(13, HIGH);
-          delay(100);
-          digitalWrite(13, LOW);
-          delay(100);
-          digitalWrite(13, HIGH);
-          delay(100);
-          digitalWrite(13, LOW);
-          exit(0);
-        }
-      }
-    }
-    
-    
-  }
-  
+  int error = 0, previousError = 0, difference = 0;
+  int Kp = 16, Kd = 0;
   
   if (game.mode != WET)
   {    //Dry RUN
     Serial.println("IDr");  //In Dry RUN
+    int prevXOrient, prevYOrient;
     while(1){
-      bot.moveForward();
-      if(true || bot.nodeDetect()>PATH){
+      previousError = error;
+      error = bot.getError();
+      difference = previousError - error;
+      rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
+      if (error > 0) leftRPM /= 2;
+      if (error < 0) rightRPM /= 2;
+      bot.moveForward(leftRPM, rightRPM);
+      if(bot.nodeDetect()>PATH){
+        bot.beep();
         game.lastVertex.x += game.xOrient;
         game.lastVertex.y += game.yOrient;
         //Serial.println("\n\nLastVertex:");
@@ -97,16 +74,30 @@ void loop(){
           //Serial.println("Saved Wet");
           game.simulateDryCompletion();
           game.mode = WET;
-          EEPROM_writeAnything(0, game);
+          //EEPROM_writeAnything(0, game);
+          bot.stopMoving();
           bot.ReadyForWet();
+          exit(0);
         }
       }
       
       if(Game::dryPath[game.completedSegments+1] == Vertex::getIndex(game.lastVertex.x, game.lastVertex.y)){
+        
         Serial.println("ARV");  //Arrived
         game.completedSegments++;
+        prevXOrient = game.xOrient;
+        prevYOrient = game.yOrient;
         game.xOrient = Vertex::dx(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);  
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
+        if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){
+          if (game.xOrient == -1 * prevYOrient && game.yOrient == 1 * prevXOrient){
+            bot.moveUntil(VERTEX);
+            bot.moveLeft();
+          }else if(game.xOrient == 1 * prevYOrient && game.yOrient == -1 * prevXOrient){
+            bot.moveUntil(VERTEX);
+            bot.moveRight();
+          }
+        }
       }
     }
   }
