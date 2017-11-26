@@ -49,11 +49,26 @@ void loop(){
   float RPM = 150, rightRPM, leftRPM;
   int error = 0, previousError = 0, difference = 0;
   int Kp = 16, Kd = 0;
+
+  while(0){                 //Sida Jane Code Using PID
+    previousError = error;
+    error = bot.getError();
+    difference = previousError - error;
+    rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
+    if (error > 0) leftRPM /= 2;
+    if (error < 0) rightRPM /= 2;
+    bot.moveForward(leftRPM, rightRPM);
+    if (bot.nodeDetect() == BLOCKBASE){
+      bot.beep();
+      bot.stopMoving();
+      exit(0);
+    }
+  }
   
   if (game.mode != WET)
   {    //Dry RUN
     Serial.println("IDr");  //In Dry RUN
-    int prevXOrient, prevYOrient;
+    int prevXOrient, prevYOrient, vertexType;
     while(1){
       previousError = error;
       error = bot.getError();
@@ -62,8 +77,15 @@ void loop(){
       if (error > 0) leftRPM /= 2;
       if (error < 0) rightRPM /= 2;
       bot.moveForward(leftRPM, rightRPM);
-      if(bot.nodeDetect()>PATH){
-        bot.beep();
+      vertexType = bot.nodeDetect();
+      if(vertexType>PATH){
+        if (vertexType == VERTEX) {bot.beep();}
+        if (vertexType == NODE) {bot.beep(); bot.beep();}
+        if (vertexType == BLOCKBASE) {bot.beep(); bot.beep(); bot.beep();}
+        
+        
+        bot.moveUntil(vertexType);
+        
         game.lastVertex.x += game.xOrient;
         game.lastVertex.y += game.yOrient;
         //Serial.println("\n\nLastVertex:");
@@ -91,10 +113,10 @@ void loop(){
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
         if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){
           if (game.xOrient == -1 * prevYOrient && game.yOrient == 1 * prevXOrient){
-            bot.moveUntil(VERTEX);
+            //bot.moveUntil(VERTEX);
             bot.moveLeft();
           }else if(game.xOrient == 1 * prevYOrient && game.yOrient == -1 * prevXOrient){
-            bot.moveUntil(VERTEX);
+            //bot.moveUntil(VERTEX);
             bot.moveRight();
           }
         }

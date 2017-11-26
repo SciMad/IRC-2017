@@ -83,7 +83,7 @@ class Bot{
     }
   };
   int getError(){
-  int error = 0;
+    int error = 0;
     if (digitalRead(A1) == WHITE) {error = 1;}
     if (digitalRead(A1) == WHITE && digitalRead(A2) == BLACK) error = 2;
     if (digitalRead(A0) == WHITE && digitalRead(A2) == BLACK) error = 3;
@@ -91,6 +91,18 @@ class Bot{
     if (digitalRead(A3) == WHITE) error = -1;
     if (digitalRead(A3) == WHITE && digitalRead(A2) == BLACK) error = -2;
     if (digitalRead(A4) == WHITE && digitalRead(A2) == BLACK) error = -3;
+    return error;
+  }
+
+  int getErr(VertexType vertexType){       //improvision on getError();
+    int error = 0;
+    if (digitalRead(A1) == digitalRead(A2)) {error = 1;}
+    if ((digitalRead(A2) == digitalRead(A3)) && (digitalRead(A2) != digitalRead(A1) )) error = 2;
+    //if (digitalRead(A0) == WHITE && digitalRead(A2) == BLACK) error = 3;
+    
+    if (digitalRead(A3) == digitalRead(A2)) error = -1;
+    if (digitalRead(A2) == digitalRead(A1) && (digitalRead(A2) != digitalRead(A3) )) error = -2;
+    //if (digitalRead(A4) == WHITE && digitalRead(A2) == BLACK) error = -3;
     return error;
   }
   void gripBlock(){
@@ -102,13 +114,22 @@ class Bot{
   };
 
   void moveUntil(VertexType vertexType){
-
-    while(1){
-        moveForward(100, 100);
-        if (digitalRead(A5) == LOW){
-          break;
-        }
+   
+    float RPM = 150, rightRPM, leftRPM;
+    int error = getError(), previousError = 0, difference = 0;
+    int Kp = 16, Kd = 0;
+    while(1){   
+      previousError = error;
+      error = getError();
+      difference = previousError - error;
+      rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
+      moveForward(leftRPM, rightRPM);
+      if (error > 0) leftRPM /= 2;
+      if (error < 0) rightRPM /= 2;
+      if (digitalRead(A5) == LOW){
+        break;
       }
+    }
     //do{
     //  moveForward();
     //}while(nodeDetect() != vertexType);   //Reach (0,0)
@@ -122,11 +143,17 @@ class Bot{
     //Serial.println(xOrient);
     //Serial.println(yOrient);
   };
-  void beep(){
+  void beepbeep(int interval=100){
     digitalWrite(13, HIGH);
-    delay(100);
+    delay(interval);
     digitalWrite(13, LOW);
-    delay(100);
+    delay(interval);
+    digitalWrite(13, HIGH);
+    delay(interval);
+    digitalWrite(13, LOW);
+  }
+  
+  void beep(int interval=100){
     digitalWrite(13, HIGH);
     delay(100);
     digitalWrite(13, LOW);
@@ -248,7 +275,38 @@ class Bot{
     //if (digitalRead(2) == HIGH) {Serial.println("TZ Detected"); return TRANSFERZONE; }
     //if (digitalRead(3) == HIGH) {Serial.println("Vertex Detected"); return VERTEX; }
     //if (digitalRead(4) == HIGH) {Serial.println("BLOCKBASE Detected"); return BLOCKBASE; }
-    if (digitalRead(A1) == WHITE && digitalRead(A2) == WHITE && digitalRead(A3) == WHITE ) { return VERTEX;}
+    int changeInColor = 0;
+    int prevColor, color;
+    if (digitalRead(A0) == WHITE && digitalRead(A2) == WHITE && digitalRead(A4) == WHITE ) { return VERTEX;}
+    
+    if (digitalRead(A2) == BLACK) {
+      prevColor= BLACK;
+      float RPM = 150, rightRPM, leftRPM;
+      int error = getError(), previousError = 0, difference = 0;
+      int Kp = 16, Kd = 0;
+      while(1){
+        color = digitalRead(A2);
+        if (color != prevColor) {
+          changeInColor++;
+          prevColor = color;
+        }
+        previousError = error;
+        error = getError();
+        difference = previousError - error;
+        rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
+        moveForward(leftRPM, rightRPM);
+        if (error > 0) leftRPM /= 2;
+        if (error < 0) rightRPM /= 2;
+        if (digitalRead(A5) == LOW){
+          break;
+        }
+      }
+      if (changeInColor == 1) {
+        return NODE;  
+      }else if(changeInColor > 1) {
+        return BLOCKBASE;
+      }
+    }
     return PATH;
   };
  
@@ -263,7 +321,7 @@ class Bot{
   void ReadyForWet(){
     beep();
     beep();
-    beep(); `
+    beep();
       
   };
   
