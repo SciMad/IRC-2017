@@ -4,6 +4,50 @@
 typedef int MotorDirection;
 const MotorDirection FORWARD = 1, BACKWARD = -1, STOP = 0;
 int maxRPM = 200;
+class Sensor{
+  public:
+  static int senseColor(int sensorNum){
+    int analogValue = 800;
+    switch sensorNum{
+      case -5:
+        analogValue = analogRead(A2);
+        break;
+      case -4:
+        analogValue = analogRead(A1);
+        break;
+      case -3:
+        analogValue = analogRead(A0);
+        break;
+      case -2:
+        analogValue = analogRead(A3);
+        break;
+      case -1:
+        analogValue = analogRead(A4);
+        break;
+      case 0:
+        analogValue = analogRead(A5);
+        break;
+      case 1:
+        analogValue = analogRead(A6);
+        break;
+      case 2:
+        analogValue = analogRead(A7);
+        break;
+      case 3:
+        analogValue = analogRead(A8);
+        break;
+      case 4:
+        analogValue = analogRead(A9);
+        break;
+      case 5:
+        analogValue = analogRead(A10);
+        break;
+      default:
+        break;
+    }
+    if (analogValue < 100) return WHITE; else return BLACK;
+  }
+}
 
 class Bot{
   public:
@@ -28,6 +72,11 @@ class Bot{
   void moveForward(int leftRPM, int rightRPM){
     leftMotor(FORWARD, leftRPM);
     rightMotor(FORWARD, rightRPM);
+  };
+
+  void moveBackward(int leftRPM, int rightRPM){
+    leftMotor(BACKWARD, leftRPM);
+    rightMotor(BACKWARD, rightRPM);
   };
 
   void stopMoving(){
@@ -82,7 +131,7 @@ class Bot{
       break;
     }
   };
-  int getError(){
+  int getError(){       // For 5 Linear Sensors
     int error = 0;
     if (digitalRead(A1) == WHITE) {error = 1;}
     if (digitalRead(A1) == WHITE && digitalRead(A2) == BLACK) error = 2;
@@ -94,17 +143,18 @@ class Bot{
     return error;
   }
 
-  int getErr(VertexType vertexType){       //improvision on getError();
+  int getErr(){       // For 11 Linear Sensors
     int error = 0;
-    if (digitalRead(A1) == digitalRead(A2)) {error = 1;}
-    if ((digitalRead(A2) == digitalRead(A3)) && (digitalRead(A2) != digitalRead(A1) )) error = 2;
-    //if (digitalRead(A0) == WHITE && digitalRead(A2) == BLACK) error = 3;
+    if (senseColor(1) == WHITE) {error = 1;}
+    if (digitalRead(A1) == WHITE && digitalRead(A2) == BLACK) error = 2;
+    if (digitalRead(A0) == WHITE && digitalRead(A2) == BLACK) error = 3;
     
-    if (digitalRead(A3) == digitalRead(A2)) error = -1;
-    if (digitalRead(A2) == digitalRead(A1) && (digitalRead(A2) != digitalRead(A3) )) error = -2;
-    //if (digitalRead(A4) == WHITE && digitalRead(A2) == BLACK) error = -3;
+    if (digitalRead(A3) == WHITE) error = -1;
+    if (digitalRead(A3) == WHITE && digitalRead(A2) == BLACK) error = -2;
+    if (digitalRead(A4) == WHITE && digitalRead(A2) == BLACK) error = -3;
     return error;
   }
+
   void gripBlock(){
     Serial.println("GRP");    //I am gripping
   };
@@ -113,9 +163,9 @@ class Bot{
     
   };
 
-  void moveUntil(VertexType vertexType){
+  void moveUntil(VertexType vertexType, MotorDirection motorDirection = FORWARD){
    
-    float RPM = 150, rightRPM, leftRPM;
+    float RPM = 100, rightRPM, leftRPM;
     int error = getError(), previousError = 0, difference = 0;
     int Kp = 16, Kd = 0;
     while(1){   
@@ -123,7 +173,7 @@ class Bot{
       error = getError();
       difference = previousError - error;
       rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
-      moveForward(leftRPM, rightRPM);
+      if (motorDirection == FORWARD) moveForward(leftRPM, rightRPM); else moveBackward(leftRPM, rightRPM);
       if (error > 0) leftRPM /= 2;
       if (error < 0) rightRPM /= 2;
       if (digitalRead(A5) == LOW){
@@ -164,39 +214,54 @@ class Bot{
   };
 
   void moveLeft(){
-    int error = 4;
-    int rotateRPM = 90, RPM;
+    int error = 3;
+    int rotateRPM = 60, RPM;
     //int Kp = 25;
     int flag[5] = {0, 0, 0, 0, 0};
-    while(error){
-      RPM = rotateRPM;
-      
-      leftMotor(BACKWARD, RPM);
-      rightMotor(FORWARD, RPM);
-      
-      if (digitalRead(A0) == WHITE && flag[0] == 0) {error--; error--; flag[0] = 1; rotateRPM = 60;}
-      if (digitalRead(A1) == WHITE && flag[1] == 0) {error--; error--; flag[1] = 1; }
-      //if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1; }
+    RPM = rotateRPM;
+    
+    leftMotor(BACKWARD, RPM);
+    rightMotor(FORWARD, RPM);  
+    delay(300);
+    while(error){  
+      if (digitalRead(A0) == WHITE && flag[0] == 0) {error--; flag[0] = 1; }
+      if (digitalRead(A1) == WHITE && flag[1] == 0) {error--; flag[1] = 1; }
+      if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1; }
+    }10
+    stopMoving();
+    delay(100);
+    RPM = 60;
+    while(0){
+      leftMotor(FORWARD, RPM);
+      rightMotor(BACKWARD, RPM);
+      if (digitalRead(A2) == WHITE) {break;}
     }
-    leftMotor(STOP, 0);
-    rightMotor(STOP, 0);
   };
   
   void moveRight(){
-    int error = 4;
-    int rotateRPM = 90, RPM;
+    int error = 3;
+    int rotateRPM = 60, RPM;
     //int Kp = 25;
     int flag[5] = {0, 0, 0, 0, 0};
+    leftMotor(FORWARD, RPM);
+    rightMotor(BACKWARD, RPM);  
+    delay(300);
     while(error){
       RPM = rotateRPM ;
       leftMotor(FORWARD, RPM);
       rightMotor(BACKWARD, RPM);
-      if (digitalRead(A4) == WHITE && flag[0] == 0) {error--; error--; flag[0] = 1; rotateRPM = 60;}
-      if (digitalRead(A3) == WHITE && flag[1] == 0) {error--; error--; flag[1] = 1;}
-      //if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1; }
+      if (digitalRead(A4) == WHITE && flag[0] == 0) {error--; flag[0] = 1;}
+      if (digitalRead(A3) == WHITE && flag[1] == 0) {error--; flag[1] = 1;}
+      if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1;}
     }
-    leftMotor(STOP, 0);
-    rightMotor(STOP, 0);
+    stopMoving();
+    delay(50);
+    RPM = 60;
+    while(0){
+      leftMotor(BACKWARD, RPM);
+      rightMotor(FORWARD, RPM);
+      if (digitalRead(A2) == WHITE) {break;}
+    }
   };
 
   void traverse(int* p, int l, VertexType type){
@@ -279,7 +344,7 @@ class Bot{
     int prevColor, color;
     if (digitalRead(A0) == WHITE && digitalRead(A2) == WHITE && digitalRead(A4) == WHITE ) { return VERTEX;}
     
-    if (digitalRead(A2) == BLACK) {
+    if (0 && digitalRead(A2) == BLACK) {
       prevColor= BLACK;
       float RPM = 150, rightRPM, leftRPM;
       int error = getError(), previousError = 0, difference = 0;
