@@ -28,7 +28,7 @@ void setup(){
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
   pinMode(A4, INPUT);
-  pinMode(A5, INPUT);
+  pinMode(A5, INPUT);               //Sensor From Tyre
 
   //clearEEPROM(); exit(0);
 
@@ -46,7 +46,7 @@ void setup(){
 void loop(){
   Bot bot;
   
-  float RPM = 150, rightRPM, leftRPM;
+  float RPM = 200, rightRPM, leftRPM;
   int error = 0, previousError = 0, difference = 0;
   int Kp = 16, Kd = 0;
 
@@ -58,33 +58,30 @@ void loop(){
     if (error > 0) leftRPM /= 2;
     if (error < 0) rightRPM /= 2;
     bot.moveForward(leftRPM, rightRPM);
-    if (bot.nodeDetect() == BLOCKBASE){
-      bot.beep();
-      bot.stopMoving();
-      exit(0);
-    }
+    
   }
   
   if (game.mode != WET)
   {    //Dry RUN
     Serial.println("IDr");  //In Dry RUN
     int prevXOrient, prevYOrient, vertexType;
-    while(1){
+    while(1){         //Main Loop For Dry Run
       previousError = error;
       error = bot.getError();
       difference = previousError - error;
       rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
       if (error > 0) leftRPM /= 2;
       if (error < 0) rightRPM /= 2;
-      bot.moveForward(leftRPM, rightRPM);
+      bot.moveForward(leftRPM,rightRPM);
       vertexType = bot.nodeDetect();
+      
       if(vertexType>PATH){
+        
         if (vertexType == VERTEX) {bot.beep();}
-        if (vertexType == NODE) {bot.beep(); bot.beep();}
-        if (vertexType == BLOCKBASE) {bot.beep(); bot.beep(); bot.beep();}
+        if (vertexType == NODE) {bot.beep();}
+        if (vertexType == BLOCKBASE) {bot.beep();}
         
-        
-        bot.moveUntil(vertexType);
+        //bot.moveUntil(vertexType);
         
         game.lastVertex.x += game.xOrient;
         game.lastVertex.y += game.yOrient;
@@ -111,8 +108,13 @@ void loop(){
         prevYOrient = game.yOrient;
         game.xOrient = Vertex::dx(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);  
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
-        if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){
-          if (game.xOrient == -1 * prevYOrient && game.yOrient == 1 * prevXOrient){
+        if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){   //If orientation needs to be changed
+          bot.moveUntil(vertexType);
+          //bot.stopMoving();
+          //delay(50);
+          bot.moveBackward(200, 200);
+          delay(100);
+          if (game.xOrient == -1 * prevYOrient && game.yOrient == 1 * prevXOrient){             //If orientation needs to be changed antiClockwise
             //bot.moveUntil(VERTEX);
             bot.moveLeft();
           }else if(game.xOrient == 1 * prevYOrient && game.yOrient == -1 * prevXOrient){
