@@ -6,9 +6,9 @@ const MotorDirection FORWARD = 1, BACKWARD = -1, STOP = 0;
 int maxRPM = 200;
 class Sensor{
   public:
-  static int senseColor(int sensorNum){
+  static int color(int sensorNum){
     int analogValue = 800;
-    switch sensorNum{
+    switch (sensorNum){
       case -5:
         analogValue = analogRead(A2);
         break;
@@ -47,7 +47,7 @@ class Sensor{
     }
     if (analogValue < 100) return WHITE; else return BLACK;
   }
-}
+};
 
 class Bot{
   public:
@@ -145,13 +145,18 @@ class Bot{
 
   int getErr(){       // For 11 Linear Sensors
     int error = 0;
-    if (senseColor(1) == WHITE) {error = 1;}
-    if (digitalRead(A1) == WHITE && digitalRead(A2) == BLACK) error = 2;
-    if (digitalRead(A0) == WHITE && digitalRead(A2) == BLACK) error = 3;
+    //Positive Errors When Bot Deviates Right
+    if (Sensor::color(-1) == WHITE ) {error = 1;}
+    if (Sensor::color(-2) == WHITE && Sensor::color(0) == BLACK) {error = 2;}
+    if (Sensor::color(-3) == WHITE &&  Sensor::color(0)== BLACK) {error = 3;}
+    if (Sensor::color(-4) == WHITE &&  Sensor::color(0)== BLACK) {error = 4;}
+
+    //Negative Errors When Bot Deviates Left
+    if (Sensor::color(1) == WHITE ) {error = -1;}
+    if (Sensor::color(2) == WHITE && Sensor::color(0) == BLACK) {error = -2;}
+    if (Sensor::color(3) == WHITE &&  Sensor::color(0)== BLACK) {error = -3;}
+    if (Sensor::color(4) == WHITE &&  Sensor::color(0)== BLACK) {error = -4;}
     
-    if (digitalRead(A3) == WHITE) error = -1;
-    if (digitalRead(A3) == WHITE && digitalRead(A2) == BLACK) error = -2;
-    if (digitalRead(A4) == WHITE && digitalRead(A2) == BLACK) error = -3;
     return error;
   }
 
@@ -227,7 +232,7 @@ class Bot{
       if (digitalRead(A0) == WHITE && flag[0] == 0) {error--; flag[0] = 1; }
       if (digitalRead(A1) == WHITE && flag[1] == 0) {error--; flag[1] = 1; }
       if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1; }
-    }10
+    }
     stopMoving();
     delay(100);
     RPM = 60;
@@ -337,40 +342,12 @@ class Bot{
   }
   
   VertexType nodeDetect(){
-    //if (digitalRead(2) == HIGH) {Serial.println("TZ Detected"); return TRANSFERZONE; }
-    //if (digitalRead(3) == HIGH) {Serial.println("Vertex Detected"); return VERTEX; }
-    //if (digitalRead(4) == HIGH) {Serial.println("BLOCKBASE Detected"); return BLOCKBASE; }
-    int changeInColor = 0;
-    int prevColor, color;
-    if (digitalRead(A0) == WHITE && digitalRead(A2) == WHITE && digitalRead(A4) == WHITE ) { return VERTEX;}
-    
-    if (0 && digitalRead(A2) == BLACK) {
-      prevColor= BLACK;
-      float RPM = 150, rightRPM, leftRPM;
-      int error = getError(), previousError = 0, difference = 0;
-      int Kp = 16, Kd = 0;
-      while(1){
-        color = digitalRead(A2);
-        if (color != prevColor) {
-          changeInColor++;
-          prevColor = color;
-        }
-        previousError = error;
-        error = getError();
-        difference = previousError - error;
-        rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
-        moveForward(leftRPM, rightRPM);
-        if (error > 0) leftRPM /= 2;
-        if (error < 0) rightRPM /= 2;
-        if (digitalRead(A5) == LOW){
-          break;
-        }
-      }
-      if (changeInColor == 1) {
-        return NODE;  
-      }else if(changeInColor > 1) {
+    if (Sensor::color(-4) == WHITE && Sensor::color(0) == WHITE && Sensor::color(4) == WHITE ) { return VERTEX;}
+    if (Sensor::color(-4) == WHITE && Sensor::color(0) == BLACK && Sensor::color(4) == WHITE) {
+        return NODE;
+    }
+    if (Sensor::color(-5) == BLACK && Sensor::color(-4) == WHITE && Sensor::color(0) == BLACK && Sensor::color(4) == WHITE && Sensor::color(5) == BLACK) {
         return BLOCKBASE;
-      }
     }
     return PATH;
   };
