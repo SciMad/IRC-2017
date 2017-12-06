@@ -146,16 +146,28 @@ class Bot{
   int getErr(){       // For 11 Linear Sensors
     int error = 0;
     //Positive Errors When Bot Deviates Right
-    if (Sensor::color(-1) == WHITE ) {error = 1;}
-    if (Sensor::color(-2) == WHITE && Sensor::color(0) == BLACK) {error = 2;}
-    if (Sensor::color(-3) == WHITE &&  Sensor::color(0)== BLACK) {error = 3;}
+    if (Sensor::color(-1) == WHITE) {error = 0;}
+    if (Sensor::color(1) == BLACK) {error = 1;}    
+    if (Sensor::color(-2) == WHITE) {error = 2;}
+    if (Sensor::color(-3) == WHITE ||  Sensor::color(0)== BLACK) {error = 3;}
     if (Sensor::color(-4) == WHITE &&  Sensor::color(0)== BLACK) {error = 4;}
 
     //Negative Errors When Bot Deviates Left
-    if (Sensor::color(1) == WHITE ) {error = -1;}
-    if (Sensor::color(2) == WHITE && Sensor::color(0) == BLACK) {error = -2;}
-    if (Sensor::color(3) == WHITE &&  Sensor::color(0)== BLACK) {error = -3;}
+    if (Sensor::color(1) == WHITE) {error = 0;}
+    if (Sensor::color(-1) == BLACK) {error = -1;}    
+    if (Sensor::color(2) == WHITE) {error = -2;}
+    if (Sensor::color(3) == WHITE ||  Sensor::color(0)== BLACK) {error = -3;}
     if (Sensor::color(4) == WHITE &&  Sensor::color(0)== BLACK) {error = -4;}
+
+    //Error For Blockbase's Path
+    
+    if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == BLACK) {error = 0;}
+    
+    if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == WHITE) {error = 1;}
+    if (Sensor::color(-1) == WHITE && Sensor::color(0) == BLACK && Sensor::color(-1) == BLACK) {error = -1;}
+
+    //TODO: Work on Higher errors if bot deviates
+
     
     return error;
   }
@@ -169,7 +181,6 @@ class Bot{
   };
 
   void moveUntil(VertexType vertexType, MotorDirection motorDirection = FORWARD){
-   
     float RPM = 100, rightRPM, leftRPM;
     int error = getError(), previousError = 0, difference = 0;
     int Kp = 16, Kd = 0;
@@ -343,12 +354,20 @@ class Bot{
   
   VertexType nodeDetect(){
     if (Sensor::color(-4) == WHITE && Sensor::color(0) == WHITE && Sensor::color(4) == WHITE ) { return VERTEX;}
-    if (Sensor::color(-4) == WHITE && Sensor::color(0) == BLACK && Sensor::color(4) == WHITE) {
+    if (Sensor::color(-5) == WHITE && Sensor::color(-4) == WHITE && Sensor::color(0) == BLACK && Sensor::color(4) == WHITE && Sensor::color(5) == WHITE) {
         return NODE;
     }
     if (Sensor::color(-5) == BLACK && Sensor::color(-4) == WHITE && Sensor::color(0) == BLACK && Sensor::color(4) == WHITE && Sensor::color(5) == BLACK) {
-        return BLOCKBASE;
+        //return BLOCKBASE;
+        //TODO: Might wanna change the vertexType to "PATH2BB"
+        return PATH;  //It's path before arriving blockbase!!!
     }
+
+    if (Sensor::color(-5) == WHITE && Sensor::color(-4) == BLACK && Sensor::color(0) == WHITE && Sensor::color(4) == BLACK && Sensor::color(5) == WHITE) {
+        //return BLOCKBASE;
+        return PATH;  //It's path before arriving blockbase!!!
+    }
+    
     return PATH;
   };
  
