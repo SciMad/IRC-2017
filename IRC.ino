@@ -59,7 +59,7 @@ void loop(){
 
   while(0){                 //Sida Jane Code Using PID
     previousError = error;
-    error = bot.getError();
+    error = bot.getErr();
     difference = previousError - error;
     rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
     if (error > 0) leftRPM /= 2;
@@ -74,7 +74,7 @@ void loop(){
     int prevXOrient, prevYOrient, vertexType;
     while(1){         //Main Loop For Dry Run
       previousError = error;
-      error = bot.getError();
+      error = bot.getErr();
       difference = previousError - error;
       rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
       if (error > 0) leftRPM /= 2;
