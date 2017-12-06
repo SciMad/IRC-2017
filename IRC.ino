@@ -28,7 +28,14 @@ void setup(){
   pinMode(A2, INPUT);
   pinMode(A3, INPUT);
   pinMode(A4, INPUT);
-  pinMode(A5, INPUT);               //Sensor From Tyre
+  pinMode(A5, INPUT);
+  pinMode(A6, INPUT);
+  pinMode(A7, INPUT);
+  pinMode(A8, INPUT);
+  pinMode(A9, INPUT);
+  pinMode(A10, INPUT);
+  
+  pinMode(A11, INPUT);               //Sensor From Tyre
 
   //clearEEPROM(); exit(0);
 
