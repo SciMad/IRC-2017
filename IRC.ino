@@ -4,17 +4,12 @@
 
 
 Game game;// end of Game class;
-
 void setup(){  
   Serial.begin(9600);
   while(!Serial){
   }
 
-  pinMode(10, INPUT);               //Sensor
-  pinMode(11, INPUT);               //Sensor
-  pinMode(12, INPUT);               //Sensor
- 
-  pinMode(13, OUTPUT);              //Buzzer
+  pinMode(12, OUTPUT);              //Buzzer
   pinMode(3, OUTPUT);               //Left PWM
   pinMode(9, OUTPUT);               //Right PWM
   
@@ -36,7 +31,7 @@ void setup(){
   pinMode(A10, INPUT);
   
   pinMode(A11, INPUT);               //Sensor From Tyre
-
+  
   //clearEEPROM(); exit(0);
 
   EEPROM_readAnything(0, game);http://downloads.arduino.cc/packages/package_index.json file signature verification failed. File ignored.
@@ -53,19 +48,50 @@ void setup(){
 void loop(){
   Bot bot;
   
-  float RPM = 200, rightRPM, leftRPM;
-  int error = 0, previousError = 0, difference = 0;
-  int Kp = 16, Kd = 0;
+  float RPM = 100, rightRPM, leftRPM;
+  float error = 0, previousError = 0, difference = 0, totalError = 0, change;
+  //float Kp = 14, Kd = 3, Ki = 0.06;
+  float Kp = 16, Kd = 0, Ki = 0.0;
+  while(0){
+    Serial.println(bot.getErr());
+    //Serial.println("New Set");
+    //Serial.println(Sensor::color(-4));
+    //delay(3000);
+    //Serial.println(Sensor::color(0));
+    //delay(3000);
+    //Serial.println(Sensor::color(4));
+    //delay(3000);    
+  }
 
+  int vType;
   while(0){                 //Sida Jane Code Using PID
     previousError = error;
+    totalError += error;
     error = bot.getErr();
-    difference = previousError - error;
-    rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
-    if (error > 0) leftRPM /= 2;
-    if (error < 0) rightRPM /= 2;
-    bot.moveForward(leftRPM, rightRPM);
+    difference = error - previousError;
+    change = Kp * error + Kd*difference + Ki*totalError;
+    leftRPM = RPM + change;
+    rightRPM = RPM -change;
+    //if (error > 1) leftRPM /= 2; if (error < -1) rightRPM /= 2;
+    bot.moveForward(leftRPM/2, rightRPM/2);
+    Serial.println(bot.getErr());
+    //Serial.println(leftRPM);
+    //Serial.println(rightRPM);
     
+    
+    vType = bot.nodeDetect();
+    if (vType > PATH && (millis()-game.lastDetectedTime>500)){
+        game.lastDetectedTime = millis();
+      //Serial.println(vType);
+      //bot.beepbeep();
+      //bot.stopMoving();
+      delay(100);
+      bot.stopMoving();
+      delay(50);
+      bot.moveBackward(50, 50);
+      delay(50);
+      bot.moveLeft();
+    }
   }
   
   if (game.mode != WET)
@@ -73,21 +99,25 @@ void loop(){
     Serial.println("IDr");  //In Dry RUN
     int prevXOrient, prevYOrient, vertexType;
     while(1){         //Main Loop For Dry Run
-      previousError = error;
-      error = bot.getErr();
-      difference = previousError - error;
-      rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
-      if (error > 0) leftRPM /= 2;
-      if (error < 0) rightRPM /= 2;
+    previousError = error;
+    totalError += error;
+    error = bot.getErr();
+    difference = error - previousError;
+    change = Kp * error + Kd*difference + Ki*totalError;
+    leftRPM = RPM + change;
+    rightRPM = RPM -change;
+      //if (error > 0) leftRPM /= 2;
+      //if (error < 0) rightRPM /= 2;
       bot.moveForward(leftRPM,rightRPM);
       vertexType = bot.nodeDetect();
-      
-      if(vertexType>PATH){
-        
+      Serial.println(vertexType);
+      if(vertexType>PATH && (millis()-game.lastDetectedTime>500)){
+        game.lastDetectedTime = millis();
         if (vertexType == VERTEX) {bot.beep();}
         if (vertexType == NODE) {bot.beep();}
-        if (vertexType == BLOCKBASE) {bot.beep();}
-        
+        if (vertexType == BLOCKBASE) {bot.beep();} 
+        //bot.stopMoving();
+        //bot.moveLeft();
         //bot.moveUntil(vertexType);
         
         game.lastVertex.x += game.xOrient;
@@ -116,9 +146,10 @@ void loop(){
         game.xOrient = Vertex::dx(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);  
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
         if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){   //If orientation needs to be changed
-          bot.moveUntil(vertexType);
-          //bot.stopMoving();
-          //delay(50);
+          //bot.moveUntil(vertexType);
+          delay(100);
+          bot.stopMoving();
+          delay(50);
           bot.moveBackward(200, 200);
           delay(100);
           if (game.xOrient == -1 * prevYOrient && game.yOrient == 1 * prevXOrient){             //If orientation needs to be changed antiClockwise
@@ -128,13 +159,14 @@ void loop(){
             //bot.moveUntil(VERTEX);
             bot.moveRight();
           }
+          totalError = 0;
         }
       }
     }
   }
   else
     {   //game.mode = WET
-      Serial.println("WR");   //I am in Wet Run --> Actual Run
+      Serial.println("Wet Run");   //I am in Wet Run --> Actual Run
       bot.initializeWetRun();
       Color color;
       int blockCount = 0, block1, block2, d1,d2, tempBlock, pathLength;
