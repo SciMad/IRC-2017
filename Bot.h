@@ -53,6 +53,7 @@ class Bot{
   public:
   int xOrient, yOrient;
   Vertex lastVertex;
+  float lastError;
   Color readBlockColor(){ 
     
     // Communicate with RPI and get the color from Serial
@@ -85,6 +86,8 @@ class Bot{
   };
   
   void leftMotor(MotorDirection motorDirection, int RPM){
+    if (RPM > 200) RPM = 200;
+    if (RPM < 25) motorDirection = STOP;
     float PWM = (RPM*255/maxRPM);
     analogWrite(3, PWM);
     switch (motorDirection){
@@ -108,8 +111,9 @@ class Bot{
     }
   };
   void rightMotor(MotorDirection motorDirection, int RPM){
+    if (RPM > 200) RPM = 200;
+    if (RPM < 25) motorDirection = STOP;
     float PWM = (RPM*255/maxRPM);
-    
     analogWrite(9, PWM);
     switch (motorDirection){
       case FORWARD:
@@ -143,33 +147,39 @@ class Bot{
     return error;
   }
 
-  int getErr(){       // For 11 Linear Sensors
-    int error = 0;
-    //Positive Errors When Bot Deviates Right
-    if (Sensor::color(-1) == WHITE) {error = 0;}
-    if (Sensor::color(1) == BLACK) {error = 1;}    
-    if (Sensor::color(-2) == WHITE) {error = 2;}
-    if (Sensor::color(-3) == WHITE ||  Sensor::color(0)== BLACK) {error = 3;}
-    if (Sensor::color(-4) == WHITE &&  Sensor::color(0)== BLACK) {error = 4;}
-
-    //Negative Errors When Bot Deviates Left
-    if (Sensor::color(1) == WHITE) {error = 0;}
-    if (Sensor::color(-1) == BLACK) {error = -1;}    
-    if (Sensor::color(2) == WHITE) {error = -2;}
-    if (Sensor::color(3) == WHITE ||  Sensor::color(0)== BLACK) {error = -3;}
-    if (Sensor::color(4) == WHITE &&  Sensor::color(0)== BLACK) {error = -4;}
-
-    //Error For Blockbase's Path
+  float getErr(){       // For 11 Linear Sensors
+    float error = lastError, sensorPosition = 0;
+    float sensorTarget = 0;     //For straight line movement, the middle sensor must be at middle of the line, i.e. at position = 0
+    if (Sensor::color(-1) == WHITE && Sensor::color(0) == WHITE && Sensor::color(1) == WHITE) {sensorPosition = 0;}
     
-    if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == BLACK) {error = 0;}
+    //Positive Position When Bot Deviates Right
     
-    if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == WHITE) {error = 1;}
-    if (Sensor::color(-1) == WHITE && Sensor::color(0) == BLACK && Sensor::color(-1) == BLACK) {error = -1;}
+    if (Sensor::color(2) == BLACK && Sensor::color(1) == BLACK && Sensor::color(0) == WHITE) {sensorPosition = 1;}    
+    if (Sensor::color(0) == WHITE && Sensor::color(-2) == WHITE && Sensor::color(-3) == WHITE) {sensorPosition = 1.5;}
+    if (Sensor::color(1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == WHITE && Sensor::color(-3) == WHITE) {sensorPosition = 3;}
+    if (Sensor::color(1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == BLACK && Sensor::color(-3) == WHITE) {sensorPosition = 4;}
+    if (Sensor::color(3) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-3) == BLACK && Sensor::color(-4) == WHITE) {sensorPosition = 5;}
+    
+
+    //Negative Position When Bot Deviates Left
+    if (Sensor::color(-2) == BLACK && Sensor::color(-1) == BLACK && Sensor::color(0) == WHITE) {sensorPosition = -1;}    
+    if (Sensor::color(0) == WHITE && Sensor::color(2) == WHITE && Sensor::color(3) == WHITE) {sensorPosition = -1.5;}
+    if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(1) == WHITE && Sensor::color(3) == WHITE) {sensorPosition = -3;}
+    if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(1) == BLACK && Sensor::color(3) == WHITE) {sensorPosition = -4;}
+    if (Sensor::color(-3) == BLACK && Sensor::color(0) == BLACK && Sensor::color(3) == BLACK && Sensor::color(4) == WHITE) {sensorPosition = -5;}
+    
+
+    //sensorPosition For Blockbase's Path
+    
+    //if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == BLACK) {sensorPosition = 0;}
+    //if (Sensor::color(-1) == BLACK && Sensor::color(0) == BLACK && Sensor::color(-1) == WHITE) {sensorPosition = 1;}
+    //if (Sensor::color(-1) == WHITE && Sensor::color(0) == BLACK && Sensor::color(-1) == BLACK) {sensorPosition = -1;}
 
     //TODO: Work on Higher errors if bot deviates
 
-    
-    return error;
+    error = sensorTarget-sensorPosition;
+    lastError = error;
+    return error; // error = target position - current position (of central sensor)
   }
 
   void gripBlock(){
@@ -182,17 +192,20 @@ class Bot{
 
   void moveUntil(VertexType vertexType, MotorDirection motorDirection = FORWARD){
     float RPM = 100, rightRPM, leftRPM;
-    int error = getError(), previousError = 0, difference = 0;
-    int Kp = 16, Kd = 0;
+    float error = getError(), previousError = 0, difference = 0, totalError = 0, change;
+    float Kp = 14, Kd = 3, Ki = 0.06;
     while(1){   
-      previousError = error;
-      error = getError();
-      difference = previousError - error;
-      rightRPM = (RPM + Kp * error - Kd * difference); leftRPM = (RPM - Kp * error + Kd*difference);
+    previousError = error;
+    totalError += error;
+    error = getErr();
+    difference = error - previousError;
+    change = Kp * error + Kd*difference + Ki*totalError;
+    leftRPM = RPM + change;
+    rightRPM = RPM -change;
       if (motorDirection == FORWARD) moveForward(leftRPM, rightRPM); else moveBackward(leftRPM, rightRPM);
       if (error > 0) leftRPM /= 2;
       if (error < 0) rightRPM /= 2;
-      if (digitalRead(A5) == LOW){
+      if (digitalRead(A11) == LOW){
         break;
       }
     }
@@ -210,42 +223,49 @@ class Bot{
     //Serial.println(yOrient);
   };
   void beepbeep(int interval=100){
-    digitalWrite(13, HIGH);
+    digitalWrite(12, HIGH);
     delay(interval);
-    digitalWrite(13, LOW);
+    digitalWrite(12, LOW);
     delay(interval);
-    digitalWrite(13, HIGH);
+    digitalWrite(12, HIGH);
     delay(interval);
-    digitalWrite(13, LOW);
+    digitalWrite(12, LOW);
   }
   
   void beep(int interval=100){
-    digitalWrite(13, HIGH);
+    digitalWrite(12, HIGH);
     delay(100);
-    digitalWrite(13, LOW);
+    digitalWrite(12, LOW);
   }
 
   void moveBackward(){
     
   };
 
-  void moveLeft(){
+  void moveLeft(int dir=1){
     int error = 3;
     int rotateRPM = 60, RPM;
     //int Kp = 25;
     int flag[5] = {0, 0, 0, 0, 0};
     RPM = rotateRPM;
     
-    leftMotor(BACKWARD, RPM);
-    rightMotor(FORWARD, RPM);  
-    delay(300);
-    while(error){  
-      if (digitalRead(A0) == WHITE && flag[0] == 0) {error--; flag[0] = 1; }
-      if (digitalRead(A1) == WHITE && flag[1] == 0) {error--; flag[1] = 1; }
-      if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1; }
-    }
-    stopMoving();
+    leftMotor(dir*BACKWARD, RPM);
+    rightMotor(dir*FORWARD, RPM);  
     delay(100);
+    do{
+      
+    }while(Sensor::color(-1*dir*4) == BLACK);
+
+
+    do{
+      
+    }while(Sensor::color(-1*dir*0) == BLACK);   //-1*dir*-1
+    stopMoving();
+    delay(80);
+    leftMotor(-dir*BACKWARD, RPM);
+    rightMotor(-dir*FORWARD, RPM);  
+    delay(100);
+    beepbeep();
     RPM = 60;
     while(0){
       leftMotor(FORWARD, RPM);
@@ -255,29 +275,7 @@ class Bot{
   };
   
   void moveRight(){
-    int error = 3;
-    int rotateRPM = 60, RPM;
-    //int Kp = 25;
-    int flag[5] = {0, 0, 0, 0, 0};
-    leftMotor(FORWARD, RPM);
-    rightMotor(BACKWARD, RPM);  
-    delay(300);
-    while(error){
-      RPM = rotateRPM ;
-      leftMotor(FORWARD, RPM);
-      rightMotor(BACKWARD, RPM);
-      if (digitalRead(A4) == WHITE && flag[0] == 0) {error--; flag[0] = 1;}
-      if (digitalRead(A3) == WHITE && flag[1] == 0) {error--; flag[1] = 1;}
-      if (digitalRead(A2) == WHITE && flag[2] == 0) {error--; flag[2] = 1;}
-    }
-    stopMoving();
-    delay(50);
-    RPM = 60;
-    while(0){
-      leftMotor(BACKWARD, RPM);
-      rightMotor(FORWARD, RPM);
-      if (digitalRead(A2) == WHITE) {break;}
-    }
+    moveLeft(-1);
   };
 
   void traverse(int* p, int l, VertexType type){
@@ -360,12 +358,11 @@ class Bot{
     if (Sensor::color(-5) == BLACK && Sensor::color(-4) == WHITE && Sensor::color(0) == BLACK && Sensor::color(4) == WHITE && Sensor::color(5) == BLACK) {
         //return BLOCKBASE;
         //TODO: Might wanna change the vertexType to "PATH2BB"
-        return PATH;  //It's path before arriving blockbase!!!
+        return BLOCKBASE;  //It's path before arriving blockbase!!!
     }
 
-    if (Sensor::color(-5) == WHITE && Sensor::color(-4) == BLACK && Sensor::color(0) == WHITE && Sensor::color(4) == BLACK && Sensor::color(5) == WHITE) {
-        //return BLOCKBASE;
-        return PATH;  //It's path before arriving blockbase!!!
+    if (Sensor::color(-5) == BLACK && Sensor::color(-4) ==BLACK  && Sensor::color(0) == WHITE && Sensor::color(4) == BLACK && Sensor::color(5) == BLACK) {
+        //return BLOCKBASE OR PATH;
     }
     
     return PATH;
