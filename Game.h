@@ -44,6 +44,7 @@ public:
   Orientation arrow;
   Vertex lastVertex;
   unsigned long lastDetectedTime;
+  float speedFactor;                            //To decrease speed at some cases
   int wetPath[50];
   static const int dryPath[18];                 //Might be good to make this array not static variable and initialize later, to provide flexibility.
   void initializeDryRun(){
@@ -60,6 +61,7 @@ public:
 
   void game(){
     lastDetectedTime = 0;
+    speedFactor = 1;
   }
 
   class Path{
