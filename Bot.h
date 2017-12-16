@@ -45,7 +45,7 @@ class Sensor{
       default:
         break;
     }
-    if (analogValue < 100) return WHITE; else return BLACK;
+    if (analogValue < 250) return WHITE; else return BLACK;
   }
 };
 
@@ -54,6 +54,9 @@ class Bot{
   int xOrient, yOrient;
   Vertex lastVertex;
   float lastError;
+  float speedFactor;
+  int forwardStopDelay;
+  int rotateStopDelay;
   Color readBlockColor(){ 
     
     // Communicate with RPI and get the color from Serial
@@ -71,13 +74,13 @@ class Bot{
     
   }
   void moveForward(int leftRPM, int rightRPM){
-    leftMotor(FORWARD, leftRPM);
-    rightMotor(FORWARD, rightRPM);
+    leftMotor(FORWARD, speedFactor*leftRPM);
+    rightMotor(FORWARD, speedFactor*rightRPM);
   };
 
   void moveBackward(int leftRPM, int rightRPM){
-    leftMotor(BACKWARD, leftRPM);
-    rightMotor(BACKWARD, rightRPM);
+    leftMotor(BACKWARD, speedFactor*leftRPM);
+    rightMotor(BACKWARD, speedFactor*rightRPM);
   };
 
   void stopMoving(){
@@ -244,14 +247,14 @@ class Bot{
 
   void moveLeft(int dir=1){
     int error = 3;
-    int rotateRPM = 60, RPM;
+    int rotateRPM = 90, RPM;
     //int Kp = 25;
     int flag[5] = {0, 0, 0, 0, 0};
     RPM = rotateRPM;
     
     leftMotor(dir*BACKWARD, RPM);
     rightMotor(dir*FORWARD, RPM);  
-    delay(100);
+    delay(400);
     do{
       
     }while(Sensor::color(-1*dir*4) == BLACK);
@@ -264,7 +267,7 @@ class Bot{
     delay(80);
     leftMotor(-dir*BACKWARD, RPM);
     rightMotor(-dir*FORWARD, RPM);  
-    delay(100);
+    delay(50);
     beepbeep();
     RPM = 60;
     while(0){
