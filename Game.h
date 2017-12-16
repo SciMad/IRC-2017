@@ -61,7 +61,6 @@ public:
 
   void game(){
     lastDetectedTime = 0;
-    speedFactor = 1;
   }
 
   class Path{
