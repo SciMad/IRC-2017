@@ -4,6 +4,8 @@
 
 
 Game game;// end of Game class;
+Bot bot;
+
 void setup(){  
   Serial.begin(9600);
   while(!Serial){
@@ -35,8 +37,8 @@ void setup(){
   //clearEEPROM(); exit(0);
 
   EEPROM_readAnything(0, game);http://downloads.arduino.cc/packages/package_index.json file signature verification failed. File ignored.
-
-  
+  bot.speedFactor = 1.0;
+  bot.forwardStopDelay = 50;
   delay(1000);
   if (game.mode != WET){
     Serial.println("DrI");     //I am initializing dry run
@@ -46,14 +48,14 @@ void setup(){
 }
 
 void loop(){
-  Bot bot;
+  
   
   float RPM = 100, rightRPM, leftRPM;
   float error = 0, previousError = 0, difference = 0, totalError = 0, change;
   //float Kp = 14, Kd = 3, Ki = 0.06;
-  float Kp = 16, Kd = 0, Ki = 0.0;
+  float Kp = 15, Kd = 0, Ki = 0.05;
   while(0){
-    Serial.println(bot.getErr());
+    Serial.println(analogRead(A5));
     //Serial.println("New Set");
     //Serial.println(Sensor::color(-4));
     //delay(3000);
@@ -72,17 +74,19 @@ void loop(){
     change = Kp * error + Kd*difference + Ki*totalError;
     leftRPM = RPM + change;
     rightRPM = RPM -change;
-    //if (error > 1) leftRPM /= 2; if (error < -1) rightRPM /= 2;
-    bot.moveForward(leftRPM/2, rightRPM/2);
-    Serial.println(bot.getErr());
+    if (error > 0) rightRPM = 0; if (error < 0) leftRPM = 0;
+    bot.moveForward(leftRPM, rightRPM);
+    //bot.leftMotor(FORWARD, 100);
+    //Serial.println(error);
+    //Serial.println(Sensor::color(0));
     //Serial.println(leftRPM);
     //Serial.println(rightRPM);
     
     
     vType = bot.nodeDetect();
-    if (vType > PATH && (millis()-game.lastDetectedTime>500)){
+    if (0 && vType > PATH && (millis()-game.lastDetectedTime>500)){
         game.lastDetectedTime = millis();
-      //Serial.println(vType);
+      //Serial.println(vTyplefe);
       //bot.beepbeep();
       //bot.stopMoving();
       delay(100);
@@ -106,9 +110,9 @@ void loop(){
     change = Kp * error + Kd*difference + Ki*totalError;
     leftRPM = RPM + change;
     rightRPM = RPM -change;
-      //if (error > 0) leftRPM /= 2;
-      //if (error < 0) rightRPM /= 2;
-      bot.moveForward(leftRPM,rightRPM);
+      if (error > 0) rightRPM = 0;
+      if (error < 0) leftRPM = 0;
+      bot.moveForward(leftRPM, rightRPM);
       vertexType = bot.nodeDetect();
       Serial.println(vertexType);
       if(vertexType>PATH && (millis()-game.lastDetectedTime>500)){
@@ -125,6 +129,18 @@ void loop(){
         //Serial.println("\n\nLastVertex:");
         //Serial.println(game.lastVertex.x);
         //Serial.println(game.lastVertex.y);
+
+        if (game.lastVertex.x == 2 && game.lastVertex.y == 4){//RAMP start
+          for (int i=0; i<5; i++){                            //
+            game.lastVertex.x += game.xOrient;
+            game.lastVertex.y += game.yOrient;
+          }
+          bot.speedFactor = 0.5;
+        }
+
+        if (game.lastVertex.x == 8 && game.lastVertex.y == 4){//RAMP ends
+          bot.speedFactor = 1;
+        }
         
         if (game.lastVertex.x == 7 && game.lastVertex.y == 3){
           //Serial.println("Saved Wet");
@@ -147,7 +163,7 @@ void loop(){
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
         if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){   //If orientation needs to be changed
           //bot.moveUntil(vertexType);
-          delay(100);
+          delay(60);
           bot.stopMoving();
           delay(50);
           bot.moveBackward(200, 200);
