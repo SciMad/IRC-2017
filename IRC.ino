@@ -163,10 +163,9 @@ void loop(){
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
         if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){   //If orientation needs to be changed
           //bot.moveUntil(vertexType);
-          delay(60);
           bot.stopMoving();
-          delay(50);
-          bot.moveBackward(200, 200);
+          delay(100);
+          bot.moveBackward(90, 90);
           delay(100);
           if (game.xOrient == -1 * prevYOrient && game.yOrient == 1 * prevXOrient){             //If orientation needs to be changed antiClockwise
             //bot.moveUntil(VERTEX);

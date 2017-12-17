@@ -45,7 +45,7 @@ class Sensor{
       default:
         break;
     }
-    if (analogValue < 250) return WHITE; else return BLACK;
+    if (analogValue < 350) return WHITE; else return BLACK;
   }
 };
 
