@@ -55,7 +55,12 @@ void loop(){
   //float Kp = 14, Kd = 3, Ki = 0.06;
   float Kp = 15, Kd = 0, Ki = 0.05;
   while(0){
-    Serial.println(analogRead(A5));
+    Serial.println(digitalRead(A11));
+    bot.moveUntil(VERTEX);
+    bot.stopMoving();
+    bot.moveUntil(VERTEX, BACKWARD);
+    bot.stopMoving();
+    delay(1000);
     //Serial.println("New Set");
     //Serial.println(Sensor::color(-4));
     //delay(3000);
@@ -118,8 +123,8 @@ void loop(){
       if(vertexType>PATH && (millis()-game.lastDetectedTime>500)){
         game.lastDetectedTime = millis();
         if (vertexType == VERTEX) {bot.beep();}
-        if (vertexType == NODE) {bot.beep();}
-        if (vertexType == BLOCKBASE) {bot.beep();} 
+        if (vertexType == NODE) {/*bot.beep();*/}
+        if (vertexType == BLOCKBASE) {/*bot.beep();*/} 
         //bot.stopMoving();
         //bot.moveLeft();
         //bot.moveUntil(vertexType);
@@ -162,11 +167,10 @@ void loop(){
         game.xOrient = Vertex::dx(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);  
         game.yOrient = Vertex::dy(Game::dryPath[game.completedSegments + 1],Game::dryPath[game.completedSegments]);
         if(game.xOrient != prevXOrient || game.yOrient != prevYOrient){   //If orientation needs to be changed
-          //bot.moveUntil(vertexType);
-          bot.stopMoving();
-          delay(100);
+          bot.moveUntil(vertexType);
           bot.moveBackward(90, 90);
-          delay(100);
+          delay(60);
+          bot.moveUntil(vertexType, BACKWARD);
           if (game.xOrient == -1 * prevYOrient && game.yOrient == 1 * prevXOrient){             //If orientation needs to be changed antiClockwise
             //bot.moveUntil(VERTEX);
             bot.moveLeft();

@@ -194,9 +194,9 @@ class Bot{
   };
 
   void moveUntil(VertexType vertexType, MotorDirection motorDirection = FORWARD){
-    float RPM = 100, rightRPM, leftRPM;
+    float RPM = 90, rightRPM, leftRPM;
     float error = getError(), previousError = 0, difference = 0, totalError = 0, change;
-    float Kp = 14, Kd = 3, Ki = 0.06;
+    float Kp = 10, Kd = 0, Ki = 0.05;
     while(1){   
     previousError = error;
     totalError += error;
@@ -205,10 +205,9 @@ class Bot{
     change = Kp * error + Kd*difference + Ki*totalError;
     leftRPM = RPM + change;
     rightRPM = RPM -change;
+      if (error > 0) rightRPM = 0; if (error < 0) leftRPM = 0;
       if (motorDirection == FORWARD) moveForward(leftRPM, rightRPM); else moveBackward(leftRPM, rightRPM);
-      if (error > 0) leftRPM /= 2;
-      if (error < 0) rightRPM /= 2;
-      if (digitalRead(A11) == LOW){
+      if (digitalRead(A11) == LOW){     //Single Sensor Module Sends HIGH when Black and LOW when White
         break;
       }
     }
