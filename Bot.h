@@ -57,6 +57,43 @@ class Bot{
   float speedFactor;
   int forwardStopDelay;
   int rotateStopDelay;
+  
+
+  float RPM;
+  float rightRPM;
+  float leftRPM;
+  float Kp;
+  float Kd;
+  float Ki;
+  
+  float error;            // current error  -- P term 
+  float previousError;
+  float difference;       //difference between current error and previousError (error - previousError) -- D term
+  float totalError;       //sum of errors -- I term
+  float change;           //amount of change in RPM
+
+  bot(){
+    RPM = 100;
+    Kp = 15;
+    Kd = 0;
+    Ki = 0.05;
+    totalError = 0;
+    previousError = 0;
+  }
+
+  void moveStraight(){
+    previousError = error;
+    totalError += error;
+    error = getErr();
+    difference = error - previousError;
+    change = Kp * error + Kd*difference + Ki*totalError;
+    leftRPM = RPM + change;
+    rightRPM = RPM -change;
+      if (error > 0) rightRPM = 0;
+      if (error < 0) leftRPM = 0;
+      moveForward(leftRPM, rightRPM);
+  }
+  
   Color readBlockColor(){ 
     
     // Communicate with RPI and get the color from Serial
