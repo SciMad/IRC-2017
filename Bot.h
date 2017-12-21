@@ -1,6 +1,8 @@
 #include "Grid.h"
 #include "Game.h"
+#include <Servo.h>
 
+int leftServoPin= 14,rightServoPin =16,gripServoPin = 15;
 typedef int MotorDirection;
 const MotorDirection FORWARD = 1, BACKWARD = -1, STOP = 0;
 int maxRPM = 200;
@@ -71,6 +73,7 @@ class Bot{
   float difference;       //difference between current error and previousError (error - previousError) -- D term
   float totalError;       //sum of errors -- I term
   float change;           //amount of change in RPM
+  Servo leftServo,rightServo,gripServo;
 
   bot(){
     RPM = 100;
@@ -79,6 +82,18 @@ class Bot{
     Ki = 0.05;
     totalError = 0;
     previousError = 0;
+  }
+
+  void initiateServo(){
+    pinMode(leftServoPin,OUTPUT);
+    pinMode(rightServoPin,OUTPUT);
+    pinMode(gripServoPin,OUTPUT);
+    leftServo.attach(leftServoPin);
+    rightServo.attach(rightServoPin);
+    gripServo.attach(gripServoPin);
+    leftServo.write(90);
+    rightServo.write(90);
+    gripServo.write(180);
   }
 
   void moveStraight(){
@@ -223,11 +238,63 @@ class Bot{
   }
 
   void gripBlock(){
-    Serial.println("GRP");    //I am gripping
+   // Serial.println("GRP");    //I am gripping
+    for(int pos = 180;pos>=0;pos-=1){
+    gripServo.write(pos);
+    delay(15);
+  }
+   for (int pos = 90; pos >= 0; pos -= 1) { // goes from 0 degrees to 180 degrees
+    
+    // in steps of 1 degree
+    leftServo.write(pos);              // tell servo to go to position in variable 'pos'
+    rightServo.write(pos);
+    delay(15);                       // waits 15ms for the servo to reach the position
+  } delay(1000);
+  
+ 
+  for(int pos = 0;pos<=180;pos+=1){
+    gripServo.write(pos);
+    delay(15);
+  }
+ 
+  delay(1000);
+  for (int pos = 0; pos <= 90; pos += 1) { // goes from 180 degrees to 0 degrees
+    leftServo.write(pos);              // tell servo to go to position in variable 'pos'
+    rightServo.write(pos);
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
+
+
+  //delay(2000);
   };
 
   void fillTransferZone(){
     
+    for (int pos = 90; pos >= 0; pos -= 1) { // goes from 0 degrees to 180 degrees
+    
+    // in steps of 1 degree
+    leftServo.write(pos);              // tell servo to go to position in variable 'pos'
+    rightServo.write(pos);
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
+  delay(1000);
+  
+  for(int pos = 120;pos>=0;pos-=1){
+    gripServo.write(pos);
+    delay(15);
+  }
+  delay(1000);
+  for (int pos = 0; pos <= 90; pos += 1) { // goes from 180 degrees to 0 degrees
+    leftServo.write(pos);              // tell servo to go to position in variable 'pos'
+    rightServo.write(pos);
+    delay(15);                       // waits 15ms for the servo to reach the position
+  }
+  delay(1000);
+    for(int pos = 0;pos<=180;pos+=1){
+    gripServo.write(pos);
+    delay(15);
+  }
+  
   };
 
   void moveUntil(VertexType vertexType, MotorDirection motorDirection = FORWARD){
