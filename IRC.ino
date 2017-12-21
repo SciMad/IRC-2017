@@ -8,9 +8,9 @@ Bot bot;
 
 void setup(){  
   Serial.begin(9600);
+  bot.beepbeep();
   while(!Serial){
   }
-
   pinMode(12, OUTPUT);              //Buzzer
   pinMode(3, OUTPUT);               //Left PWM
   pinMode(9, OUTPUT);               //Right PWM
@@ -34,11 +34,13 @@ void setup(){
   
   pinMode(A11, INPUT);               //Sensor From Tyre
   
+  
   //clearEEPROM(); exit(0);
 
   EEPROM_readAnything(0, game);http://downloads.arduino.cc/packages/package_index.json file signature verification failed. File ignored.
   bot.speedFactor = 1.0;
   bot.forwardStopDelay = 50;
+  bot.initiateServo();
   delay(1000);
   if (game.mode != WET){
     Serial.println("DrI");     //I am initializing dry run
@@ -54,14 +56,19 @@ void loop(){
   float error = 0, previousError = 0, difference = 0, totalError = 0, change;
   //float Kp = 14, Kd = 3, Ki = 0.06;
   float Kp = 15, Kd = 0, Ki = 0.05;
-  while(0){
-    Serial.println(digitalRead(A11));
-    bot.moveUntil(VERTEX);
-    bot.stopMoving();
-    bot.moveUntil(VERTEX, BACKWARD);
-    bot.stopMoving();
-    delay(1000);
-    //Serial.println("New Set");
+  while(1){
+    bot.gripBlock();
+   delay(2000);
+   bot.fillTransferZone();
+    Serial.println("OMG --- TASK COMPLETE");
+     exit(0);
+//    Serial.println(digitalRead(A11));
+//    bot.moveUntil(VERTEX);
+//    bot.stopMoving();
+//    bot.moveUntil(VERTEX, BACKWARD);
+//    bot.stopMoving();
+//    delay(1000);
+//    //Serial.println("New Set");
     //Serial.println(Sensor::color(-4));
     //delay(3000);
     //Serial.println(Sensor::color(0));
